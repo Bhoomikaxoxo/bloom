@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  notes         Note[]
+  tasks         Task[]
+  folders       Folder[]
+  tags          Tag[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Note {
+  id         String        @id @default(uuid())
+  title      String        @default("Untitled")
+  content    Json          @default("{}")
+  isPinned   Boolean       @default(false)
+  isFavorite Boolean       @default(false)
+  deletedAt  DateTime?
+  userId     String
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folderId   String?
+  folder     Folder?       @relation(fields: [folderId], references: [id])
+  tags       NoteTag[]
+  versions   NoteVersion[]
+  linkedTasks Task[]
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model NoteVersion {
+  id        String   @id @default(uuid())
+  noteId    String
+  note      Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  content   Json
+  createdAt DateTime @default(now())
+}
+
+model Folder {
+  id        String   @id @default(uuid())
+  name      String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes     Note[]
+  createdAt DateTime @default(now())
+
+  @@unique([userId, name])
+}
+
+model Tag {
+  id        String    @id @default(uuid())
+  name      String
+  color     String    @default("blue")
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes     NoteTag[]
+  tasks     TaskTag[]
+
+  @@unique([userId, name])
+}
+
+model NoteTag {
+  noteId String
+  tagId  String
+  note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, tagId])
+}
+
+enum TaskSource {
+  STANDALONE
+  NOTE
+}
+
+model Task {
+  id        String     @id @default(uuid())
+  title     String
+  done      Boolean    @default(false)
+  priority  Priority   @default(MEDIUM)
+  dueDate   DateTime?
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  noteId    String?
+  note      Note?      @relation(fields: [noteId], references: [id])
+  source    TaskSource @default(STANDALONE)
+  sourceId  String?
+  tags      TaskTag[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([userId, sourceId])
+}
+
+model TaskTag {
+  taskId String
+  tagId  String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, tagId])
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
