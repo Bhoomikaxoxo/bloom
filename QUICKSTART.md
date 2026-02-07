@@ -13,7 +13,7 @@ npm run dev
 ```
 
 This will start:
-- Backend on `http://localhost:5000`
+- Backend on `http://localhost:5001`
 - Frontend on `http://localhost:5173`
 
 ---
@@ -27,14 +27,14 @@ cd backend
 
 # First time only: Set up database
 # Copy .env.example to .env and configure DATABASE_URL
-npx prisma migrate dev --name init
+npx prisma db push
 npx prisma generate
 
 # Start the server
 npm run dev
 ```
 
-Backend runs on `http://localhost:5000`
+Backend runs on `http://localhost:5001`
 
 ### 2. Start Frontend (in a new terminal)
 
@@ -79,7 +79,7 @@ CLOUDINARY_API_SECRET=your-secret
 
 ### Frontend `.env`
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5001/api
 ```
 
 ---

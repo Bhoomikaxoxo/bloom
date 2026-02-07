@@ -1,52 +1,55 @@
-import { LogOut, Moon, Sun } from 'lucide-react';
-import useAuthStore from '../store/useAuthStore';
-import useThemeStore from '../store/useThemeStore';
-import Button from '../components/ui/Button';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import NotesList from '../components/notes/NotesList';
+import Editor from '../components/notes/Editor';
 
 export default function NotesPage() {
-    const logout = useAuthStore((state) => state.logout);
-    const { theme, toggleTheme } = useThemeStore();
+    const [selectedNoteId, setSelectedNoteId] = useState(null);
+    const location = useLocation();
+
+    useEffect(() => {
+        if (location.state?.selectedNoteId) {
+            setSelectedNoteId(location.state.selectedNoteId);
+            // Optional: iterate state to clear it to avoid reopening on refresh, 
+            // but standard behavior is fine for now.
+        }
+    }, [location.state]);
 
     return (
-        <div className="min-h-screen p-8">
-            <div className="max-w-7xl mx-auto">
-                <div className="glass-panel rounded-2xl p-6 mb-6">
-                    <div className="flex items-center justify-between">
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                            Slate
-                        </h1>
+        <div className="flex h-full w-full">
+            {/* Notes List Panel */}
+            <div className={`
+                w-full lg:w-80 border-r border-slate-200/50 dark:border-slate-800/50 h-full flex flex-col
+                ${selectedNoteId ? 'hidden lg:flex' : 'flex'}
+            `}>
+                <NotesList
+                    onSelectNote={(id) => setSelectedNoteId(id)}
+                    selectedNoteId={selectedNoteId}
+                />
+            </div>
 
-                        <div className="flex items-center gap-3">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={toggleTheme}
-                            >
-                                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                            </Button>
-
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={logout}
-                            >
-                                <LogOut className="w-5 h-5" />
-                            </Button>
+            {/* Editor Panel */}
+            <div className={`
+                flex-1 h-full bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm
+                ${!selectedNoteId ? 'hidden lg:block' : 'block'}
+            `}>
+                {selectedNoteId ? (
+                    <div className="h-full relative flex flex-col">
+                        <div className="lg:hidden p-2 border-b border-slate-200/50 dark:border-slate-800/50">
+                            <button onClick={() => setSelectedNoteId(null)} className="text-sm text-indigo-600 dark:text-indigo-400 font-medium">
+                                ← Back to list
+                            </button>
+                        </div>
+                        <Editor noteId={selectedNoteId} onNoteDeleted={() => setSelectedNoteId(null)} />
+                    </div>
+                ) : (
+                    <div className="h-full flex items-center justify-center text-slate-400">
+                        <div className="text-center">
+                            <p className="text-lg font-medium">No note selected</p>
+                            <p className="text-sm">Select a note from the list to view</p>
                         </div>
                     </div>
-                </div>
-
-                <div className="glass-panel rounded-2xl p-8 text-center">
-                    <h2 className="text-2xl font-semibold text-slate-800 dark:text-slate-200 mb-3">
-                        Welcome to Slate! 🎉
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 max-w-lg mx-auto">
-                        The backend is fully functional. The Notes editor, Tasks page, and remaining UI components will be implemented next.
-                    </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-500 mt-4">
-                        Authentication is working! Try toggling dark mode or logging out.
-                    </p>
-                </div>
+                )}
             </div>
         </div>
     );

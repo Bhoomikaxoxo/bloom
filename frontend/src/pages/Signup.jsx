@@ -39,7 +39,7 @@ export default function Signup() {
             <Card className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                        Slate
+                        Bloom
                     </h1>
                     <p className="text-slate-600 dark:text-slate-400">
                         Create your account
