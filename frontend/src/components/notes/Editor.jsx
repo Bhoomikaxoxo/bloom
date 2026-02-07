@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
+import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import TaskList from '@tiptap/extension-task-list';
@@ -218,12 +218,10 @@ export default function Editor({ noteId, onNoteDeleted }) {
     useEffect(() => {
         if (editor && note && !editor.isFocused) {
             // Only set content if we are not currently typing to avoid cursor jumps
-            // Or only on initial load. using !editor.isFocused is a naive check.
-            // Better: Check if content is different or if it's the first load
-            // For MVP: Just set on load.
-            editor.commands.setContent(note.content || '');
+            // Use emitUpdate: false to prevent triggering the onUpdate handler and creating a save loop
+            editor.commands.setContent(note.content || '', false);
         }
-    }, [note, editor]); // Removing editor dependency to prevent loops? No, editor is stable.
+    }, [note, editor]);
 
     // Handle title change
     const handleTitleChange = (e) => {
@@ -269,6 +267,15 @@ export default function Editor({ noteId, onNoteDeleted }) {
 
     if (isLoading) {
         return <div className="flex-1 flex items-center justify-center text-slate-400">Loading...</div>;
+    }
+
+    // Handle case where note is not found or error occurred
+    if (!note) {
+        return (
+            <div className="flex-1 flex items-center justify-center text-slate-400">
+                Note not found or deleted
+            </div>
+        );
     }
 
     return (

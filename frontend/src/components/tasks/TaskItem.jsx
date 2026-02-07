@@ -40,14 +40,17 @@ export default function TaskItem({ task }) {
 
     return (
         <div
-            className="group flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-lg hover:shadow-sm transition-all"
+            className="group flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/50 rounded-lg hover:shadow-sm transition-all relative overflow-visible"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
             <button
-                onClick={toggleComplete}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    toggleComplete();
+                }}
                 className={cn(
-                    "flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-colors",
+                    "flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer z-10",
                     task.done
                         ? "bg-indigo-600 border-indigo-600 text-white"
                         : "border-slate-300 dark:border-slate-600 hover:border-indigo-500"
@@ -70,12 +73,28 @@ export default function TaskItem({ task }) {
                             <span>{format(new Date(task.dueDate), 'MMM d')}</span>
                         </div>
                     )}
-                    {task.priority && task.priority !== 'NONE' && (
-                        <div className={cn("flex items-center gap-1 font-medium", priorities[task.priority]?.color)}>
+
+                    <div className="relative group/item-priority">
+                        <button
+                            className={cn("flex items-center gap-1 font-medium hover:bg-slate-100 dark:hover:bg-slate-800 px-1.5 py-0.5 rounded transition-colors", priorities[task.priority || 'LOW']?.color)}
+                        >
                             <Flag size={12} fill="currentColor" />
-                            <span>{priorities[task.priority]?.label}</span>
+                            <span>{priorities[task.priority || 'LOW']?.label}</span>
+                        </button>
+
+                        <div className="absolute left-0 top-full mt-1 w-28 bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden hidden group-hover/item-priority:block z-20">
+                            {Object.keys(priorities).map((p) => (
+                                <button
+                                    key={p}
+                                    onClick={() => updateTaskMutation.mutate({ priority: p })}
+                                    className={`w-full text-left px-3 py-1.5 text-xs hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex items-center gap-2 ${task.priority === p ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600' : 'text-slate-600 dark:text-slate-400'}`}
+                                >
+                                    <span className={`w-1.5 h-1.5 rounded-full ${p === 'HIGH' ? 'bg-red-500' : p === 'MEDIUM' ? 'bg-blue-500' : 'bg-slate-400'}`} />
+                                    {priorities[p].label}
+                                </button>
+                            ))}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
