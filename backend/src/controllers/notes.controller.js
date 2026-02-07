@@ -138,6 +138,32 @@ const restoreVersion = async (req, res, next) => {
     }
 };
 
+// Add tag to note
+const addTagToNote = async (req, res, next) => {
+    try {
+        const result = await notesService.addTagToNote(req.params.id, req.params.tagId, req.user.id);
+        res.json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// Remove tag from note
+const removeTagFromNote = async (req, res, next) => {
+    try {
+        const result = await notesService.removeTagFromNote(req.params.id, req.params.tagId, req.user.id);
+        res.json({
+            success: true,
+            data: result
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createNote,
     getNotes,
@@ -147,5 +173,7 @@ module.exports = {
     deleteNote,
     restoreNote,
     getNoteVersions,
-    restoreVersion
+    restoreVersion,
+    addTagToNote,
+    removeTagFromNote
 };

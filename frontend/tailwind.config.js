@@ -11,7 +11,8 @@ export default {
                 'glass': {
                     light: 'rgba(255, 255, 255, 0.1)',
                     dark: 'rgba(0, 0, 0, 0.2)'
-                }
+                },
+                border: "hsl(var(--border))",
             },
             backdropBlur: {
                 xs: '2px',
@@ -32,5 +33,7 @@ export default {
             },
         },
     },
-    plugins: [],
+    plugins: [
+        require('@tailwindcss/typography'),
+    ],
 }

@@ -34,6 +34,14 @@ const getNotes = async (userId, filters = {}) => {
         where.folderId = filters.folderId;
     }
 
+    if (filters.tagId) {
+        where.tags = {
+            some: {
+                tagId: filters.tagId
+            }
+        };
+    }
+
     if (filters.isPinned !== undefined) {
         where.isPinned = filters.isPinned === 'true';
     }
@@ -290,6 +298,73 @@ const restoreVersion = async (noteId, versionId, userId) => {
     return { message: 'Version restored' };
 };
 
+// Add tag to note
+const addTagToNote = async (noteId, tagId, userId) => {
+    // Verify note ownership
+    const note = await prisma.note.findFirst({
+        where: { id: noteId, userId }
+    });
+
+    if (!note) {
+        throw new AppError('Note not found', 404);
+    }
+
+    // Verify tag ownership
+    const tag = await prisma.tag.findFirst({
+        where: { id: tagId, userId }
+    });
+
+    if (!tag) {
+        throw new AppError('Tag not found', 404);
+    }
+
+    // Check if already exists
+    const existing = await prisma.noteTag.findUnique({
+        where: {
+            noteId_tagId: {
+                noteId,
+                tagId
+            }
+        }
+    });
+
+    if (existing) {
+        return { message: 'Tag already added' };
+    }
+
+    // Create relationship
+    await prisma.noteTag.create({
+        data: {
+            noteId,
+            tagId
+        }
+    });
+
+    return { message: 'Tag added to note' };
+};
+
+// Remove tag from note
+const removeTagFromNote = async (noteId, tagId, userId) => {
+    // Verify note ownership
+    const note = await prisma.note.findFirst({
+        where: { id: noteId, userId }
+    });
+
+    if (!note) {
+        throw new AppError('Note not found', 404);
+    }
+
+    // Remove relationship
+    await prisma.noteTag.deleteMany({
+        where: {
+            noteId,
+            tagId
+        }
+    });
+
+    return { message: 'Tag removed from note' };
+};
+
 module.exports = {
     createNote,
     getNotes,
@@ -299,5 +374,7 @@ module.exports = {
     deleteNote,
     restoreNote,
     getNoteVersions,
-    restoreVersion
+    restoreVersion,
+    addTagToNote,
+    removeTagFromNote
 };

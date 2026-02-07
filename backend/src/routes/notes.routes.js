@@ -21,4 +21,8 @@ router.post('/:id/restore', notesController.restoreNote);
 router.get('/:id/versions', notesController.getNoteVersions);
 router.post('/:id/versions/restore', notesController.restoreVersion);
 
+// Tags
+router.post('/:id/tags/:tagId', notesController.addTagToNote);
+router.delete('/:id/tags/:tagId', notesController.removeTagFromNote);
+
 module.exports = router;

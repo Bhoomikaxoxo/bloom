@@ -38,7 +38,7 @@ const uploadImage = async (file) => {
     await fs.writeFile(filePath, file.buffer);
 
     // Return URL that can be accessed via the server
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5001';
+    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
     const url = `${baseUrl}/uploads/${fileName}`;
 
     return {
