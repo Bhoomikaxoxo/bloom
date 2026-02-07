@@ -52,7 +52,7 @@ export default function NotesList({ onSelectNote, selectedNoteId }) {
     );
 
     return (
-        <div className="w-full lg:w-80 border-r border-slate-200/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 flex flex-col h-full">
+        <div className="w-full lg:w-80 border-r border-slate-200/50 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/30 flex flex-col h-full">
             {/* Header / Search */}
             <div className="p-4 border-b border-slate-200/50 dark:border-slate-800/50 space-y-3">
                 <div className="flex items-center justify-between">

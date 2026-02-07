@@ -52,8 +52,8 @@ export default function TasksPage() {
     };
 
     return (
-        <div className="flex h-full w-full bg-slate-50 dark:bg-slate-950">
-            <div className="flex-1 max-w-4xl mx-auto p-6 lg:p-10 flex flex-col h-full">
+        <div className="flex h-full w-full bg-transparent overflow-y-auto scrollbar-hide">
+            <div className="flex-1 max-w-4xl mx-auto p-6 lg:p-10 flex flex-col min-h-full">
                 {/* Header */}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
@@ -103,7 +103,7 @@ export default function TasksPage() {
                         <button
                             type="submit"
                             disabled={!newTaskTitle.trim() || createTaskMutation.isPending}
-                            className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors hover-glass"
                         >
                             Add
                         </button>
@@ -130,7 +130,8 @@ export default function TasksPage() {
                 </div>
 
                 {/* Task List */}
-                <div className="flex-1 overflow-y-auto space-y-3 pb-8 scrollbar-hide">
+                {/* Task List - Removed overflow-y-auto to allow dropdowns to pop out, added min-h for scrolling on parent if needed */}
+                <div className="flex-1 space-y-3 pb-48">
                     {isLoading ? (
                         <div className="text-center py-10 text-slate-400">Loading tasks...</div>
                     ) : filteredTasks.length === 0 ? (
