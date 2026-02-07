@@ -14,7 +14,30 @@ export default function TaskItem({ task }) {
             const res = await api.patch(`/tasks/${task.id}`, updates);
             return res.data.data;
         },
-        onSuccess: () => {
+        onMutate: async (newUpdates) => {
+            // Cancel any outgoing refetches
+            await queryClient.cancelQueries(['tasks']);
+
+            // Snapshot the previous value
+            const previousTasks = queryClient.getQueryData(['tasks']);
+
+            // Optimistically update to the new value
+            queryClient.setQueryData(['tasks'], (old) => {
+                return old?.map(t =>
+                    t.id === task.id ? { ...t, ...newUpdates } : t
+                ) || [];
+            });
+
+            // Return a context object with the snapshotted value
+            return { previousTasks };
+        },
+        onError: (err, newUpdates, context) => {
+            queryClient.setQueryData(['tasks'], context.previousTasks);
+            console.error("Task update failed:", err);
+            // DEBUG: Alert the user to the error
+            alert(`Update Failed: ${err.response?.data?.message || err.message}`);
+        },
+        onSettled: () => {
             queryClient.invalidateQueries(['tasks']);
         }
     });

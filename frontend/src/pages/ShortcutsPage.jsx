@@ -6,20 +6,20 @@ const formattingOptions = [
         category: 'Text Formatting',
         icon: <Type size={20} className="text-purple-500" />,
         items: [
-            { name: 'Bold text', example: <span className="font-bold">Bold text</span> },
-            { name: 'Italic text', example: <span className="italic">Italic text</span> },
-            { name: 'Underline text', example: <span className="underline">Underline text</span> },
-            { name: 'Strikethrough text', example: <span className="line-through">Strikethrough text</span> },
+            { name: 'Bold text', keys: ['⌘', 'B'], example: <span className="font-bold">Bold text</span> },
+            { name: 'Italic text', keys: ['⌘', 'I'], example: <span className="italic">Italic text</span> },
+            { name: 'Underline text', keys: ['⌘', 'U'], example: <span className="underline">Underline text</span> },
+            { name: 'Strikethrough text', keys: ['⌘', 'Shift', 'X'], example: <span className="line-through">Strikethrough text</span> },
         ]
     },
     {
         category: 'Headings',
         icon: <Type size={20} className="text-indigo-500" />,
         items: [
-            { name: 'Heading 1', example: <h1 className="text-3xl font-bold">Large heading</h1> },
-            { name: 'Heading 2', example: <h2 className="text-2xl font-bold">Medium heading</h2> },
-            { name: 'Heading 3', example: <h3 className="text-xl font-bold">Small heading</h3> },
-            { name: 'Body', example: <p className="text-base">Regular paragraph text</p> },
+            { name: 'Heading 1', keys: ['⌘', 'Alt', '1'], example: <h1 className="text-3xl font-bold">Large heading</h1> },
+            { name: 'Heading 2', keys: ['⌘', 'Alt', '2'], example: <h2 className="text-2xl font-bold">Medium heading</h2> },
+            { name: 'Heading 3', keys: ['⌘', 'Alt', '3'], example: <h3 className="text-xl font-bold">Small heading</h3> },
+            { name: 'Body', keys: [], example: <p className="text-base">Regular paragraph text</p> },
         ]
     },
     {
@@ -28,6 +28,7 @@ const formattingOptions = [
         items: [
             {
                 name: 'Bulleted List',
+                keys: ['⌘', 'Shift', '8'],
                 example: (
                     <ul className="list-disc list-inside space-y-1">
                         <li>First item</li>
@@ -38,6 +39,7 @@ const formattingOptions = [
             },
             {
                 name: 'Numbered List',
+                keys: ['⌘', 'Shift', '7'],
                 example: (
                     <ol className="list-decimal list-inside space-y-1">
                         <li>First item</li>
@@ -54,6 +56,7 @@ const formattingOptions = [
         items: [
             {
                 name: 'Task list',
+                keys: ['⌘', 'Shift', '9'],
                 example: (
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
@@ -116,8 +119,19 @@ export default function ShortcutsPage() {
                                         key={index}
                                         className="p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700"
                                     >
-                                        <div className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-                                            {item.name}
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                                                {item.name}
+                                            </div>
+                                            {item.keys && item.keys.length > 0 && (
+                                                <div className="flex items-center gap-1">
+                                                    {item.keys.map((key, i) => (
+                                                        <kbd key={i} className="px-1.5 py-0.5 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded text-xs font-mono text-slate-500 dark:text-slate-400">
+                                                            {key}
+                                                        </kbd>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="text-slate-900 dark:text-slate-100">
                                             {item.example}

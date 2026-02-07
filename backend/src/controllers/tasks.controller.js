@@ -47,14 +47,21 @@ const getTaskById = async (req, res, next) => {
 
 const updateTask = async (req, res, next) => {
     try {
+        console.log(`[DEBUG] updateTask called for ID: ${req.params.id}`);
+        console.log(`[DEBUG] Request Body:`, JSON.stringify(req.body));
+
         const validatedData = updateTaskSchema.parse(req.body);
+        console.log(`[DEBUG] Validated Data:`, JSON.stringify(validatedData));
+
         const task = await tasksService.updateTask(req.params.id, req.user.id, validatedData);
+        console.log(`[DEBUG] Task Updated Successfully:`, task);
 
         res.json({
             success: true,
             data: task
         });
     } catch (error) {
+        console.error(`[DEBUG] updateTask FAILED:`, error);
         next(error);
     }
 };

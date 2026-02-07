@@ -8,7 +8,7 @@ router.use(authenticate);
 router.post('/', tasksController.createTask);
 router.get('/', tasksController.getTasks);
 router.get('/:id', tasksController.getTaskById);
-router.put('/:id', tasksController.updateTask);
+router.patch('/:id', tasksController.updateTask);
 router.delete('/:id', tasksController.deleteTask);
 
 // Sync embedded tasks for a note
