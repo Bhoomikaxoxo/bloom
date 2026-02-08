@@ -6,10 +6,12 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Typography from '@tiptap/extension-typography';
 import Image from '@tiptap/extension-image';
+import Underline from '@tiptap/extension-underline';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     Trash2, Pin, ImagePlus, Download, FileDown,
-    Bold, Italic
+    Bold, Italic, Underline as UnderlineIcon, Strikethrough, Heading1, Heading2, Heading3,
+    List, ListOrdered, CheckSquare, Code, Quote, Minus
 } from 'lucide-react';
 import api from '../../lib/axios';
 import { cn } from '../../lib/utils';
@@ -20,26 +22,115 @@ import { exportNoteAsMarkdown, exportNoteAsPDF } from '../../utils/export';
 const FormattingToolbar = ({ editor }) => {
     if (!editor) return null;
 
-    const toggleBold = () => editor.chain().focus().toggleBold().run();
-    const toggleItalic = () => editor.chain().focus().toggleItalic().run();
-
     const Button = ({ onClick, isActive, icon: Icon, title }) => (
         <button
             onClick={onClick}
+            type="button"
             className={cn(
-                "p-1.5 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-slate-600 dark:text-slate-400",
-                isActive && "bg-slate-200 dark:bg-slate-700 text-indigo-600 dark:text-indigo-400"
+                "p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors",
+                isActive && "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400"
             )}
             title={title}
         >
-            <Icon size={16} />
+            <Icon size={18} />
         </button>
     );
 
+    const Divider = () => <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />;
+
     return (
-        <div className="flex items-center gap-1 p-1 mb-4 border border-slate-200 dark:border-slate-800 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm overflow-x-auto">
-            <Button onClick={toggleBold} isActive={editor.isActive('bold')} icon={Bold} title="Bold (Cmd+B)" />
-            <Button onClick={toggleItalic} isActive={editor.isActive('italic')} icon={Italic} title="Italic (Cmd+I)" />
+        <div className="sticky top-0 z-10 flex items-center gap-1 p-2 mb-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm overflow-x-auto scrollbar-hide">
+            {/* Text Formatting */}
+            <Button
+                onClick={() => editor.chain().focus().toggleBold().run()}
+                isActive={editor.isActive('bold')}
+                icon={Bold}
+                title="Bold (⌘B)"
+            />
+            <Button
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+                isActive={editor.isActive('italic')}
+                icon={Italic}
+                title="Italic (⌘I)"
+            />
+            <Button
+                onClick={() => editor.chain().focus().toggleUnderline().run()}
+                isActive={editor.isActive('underline')}
+                icon={Underline}
+                title="Underline (⌘U)"
+            />
+            <Button
+                onClick={() => editor.chain().focus().toggleStrike().run()}
+                isActive={editor.isActive('strike')}
+                icon={Strikethrough}
+                title="Strikethrough (⌘⇧X)"
+            />
+
+            <Divider />
+
+            {/* Headings */}
+            <Button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                isActive={editor.isActive('heading', { level: 1 })}
+                icon={Heading1}
+                title="Heading 1 (⌘⌥1)"
+            />
+            <Button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                isActive={editor.isActive('heading', { level: 2 })}
+                icon={Heading2}
+                title="Heading 2 (⌘⌥2)"
+            />
+            <Button
+                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                isActive={editor.isActive('heading', { level: 3 })}
+                icon={Heading3}
+                title="Heading 3 (⌘⌥3)"
+            />
+
+            <Divider />
+
+            {/* Lists */}
+            <Button
+                onClick={() => editor.chain().focus().toggleBulletList().run()}
+                isActive={editor.isActive('bulletList')}
+                icon={List}
+                title="Bullet List (⌘⇧8)"
+            />
+            <Button
+                onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                isActive={editor.isActive('orderedList')}
+                icon={ListOrdered}
+                title="Numbered List (⌘⇧7)"
+            />
+            <Button
+                onClick={() => editor.chain().focus().toggleTaskList().run()}
+                isActive={editor.isActive('taskList')}
+                icon={CheckSquare}
+                title="Task List (⌘⇧9)"
+            />
+
+            <Divider />
+
+            {/* Block Formatting */}
+            <Button
+                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                isActive={editor.isActive('codeBlock')}
+                icon={Code}
+                title="Code Block"
+            />
+            <Button
+                onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                isActive={editor.isActive('blockquote')}
+                icon={Quote}
+                title="Quote"
+            />
+            <Button
+                onClick={() => editor.chain().focus().setHorizontalRule().run()}
+                isActive={false}
+                icon={Minus}
+                title="Horizontal Line"
+            />
         </div>
     );
 };
@@ -119,6 +210,7 @@ export default function Editor({ noteId, onNoteDeleted }) {
     const editor = useEditor({
         extensions: [
             StarterKit,
+            Underline,
             Placeholder.configure({
                 placeholder: 'Start writing...',
             }),
@@ -284,7 +376,141 @@ export default function Editor({ noteId, onNoteDeleted }) {
                 {/* Header with actions */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex-1" />
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                        {/* Formatting buttons */}
+                        {editor && (
+                            <>
+                                <button
+                                    onClick={() => editor.chain().focus().toggleBold().run()}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-colors",
+                                        editor.isActive('bold')
+                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                                            : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    title="Bold (⌘B)"
+                                >
+                                    <Bold size={18} />
+                                </button>
+                                <button
+                                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-colors",
+                                        editor.isActive('italic')
+                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                                            : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    title="Italic (⌘I)"
+                                >
+                                    <Italic size={18} />
+                                </button>
+                                <button
+                                    onClick={() => editor.chain().focus().toggleUnderline().run()}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-colors",
+                                        editor.isActive('underline')
+                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                                            : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    title="Underline (⌘U)"
+                                >
+                                    <UnderlineIcon size={18} />
+                                </button>
+                                <button
+                                    onClick={() => editor.chain().focus().toggleStrike().run()}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-colors",
+                                        editor.isActive('strike')
+                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                                            : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    title="Strikethrough (⌘⇧X)"
+                                >
+                                    <Strikethrough size={18} />
+                                </button>
+
+                                <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+
+                                <button
+                                    onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-colors",
+                                        editor.isActive('heading', { level: 1 })
+                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                                            : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    title="Heading 1 (⌘⌥1)"
+                                >
+                                    <Heading1 size={18} />
+                                </button>
+                                <button
+                                    onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-colors",
+                                        editor.isActive('heading', { level: 2 })
+                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                                            : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    title="Heading 2 (⌘⌥2)"
+                                >
+                                    <Heading2 size={18} />
+                                </button>
+                                <button
+                                    onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-colors",
+                                        editor.isActive('heading', { level: 3 })
+                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                                            : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    title="Heading 3 (⌘⌥3)"
+                                >
+                                    <Heading3 size={18} />
+                                </button>
+
+                                <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+
+                                <button
+                                    onClick={() => editor.chain().focus().toggleBulletList().run()}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-colors",
+                                        editor.isActive('bulletList')
+                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                                            : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    title="Bullet List (⌘⇧8)"
+                                >
+                                    <List size={18} />
+                                </button>
+                                <button
+                                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-colors",
+                                        editor.isActive('orderedList')
+                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                                            : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    title="Numbered List (⌘⇧7)"
+                                >
+                                    <ListOrdered size={18} />
+                                </button>
+                                <button
+                                    onClick={() => editor.chain().focus().toggleTaskList().run()}
+                                    className={cn(
+                                        "p-2 rounded-lg transition-colors",
+                                        editor.isActive('taskList')
+                                            ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+                                            : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                    )}
+                                    title="Task List (⌘⇧9)"
+                                >
+                                    <CheckSquare size={18} />
+                                </button>
+
+                                <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 mx-1" />
+                            </>
+                        )}
+
                         <button
                             onClick={handleImageUpload}
                             disabled={isUploading}
@@ -348,7 +574,7 @@ export default function Editor({ noteId, onNoteDeleted }) {
                     placeholder="Note Title"
                 />
 
-                {/* <FormattingToolbar editor={editor} /> */}
+
 
                 <div ref={editorContentRef}>
                     <EditorContent editor={editor} className="editor-content" />
