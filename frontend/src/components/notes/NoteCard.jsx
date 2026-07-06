@@ -258,7 +258,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
       {note.isPinned && !showTrash && <StickerBadge type={stickerType} />}
 
       {/* Draggable Stickers Overlay */}
-      <div className="absolute inset-0 pointer-events-none rounded-[2.5rem] overflow-hidden z-10">
+      <div className="absolute inset-0 pointer-events-none rounded-[2.5rem] z-30">
         {(note.stickers || []).map((sticker) => (
           <motion.div
             key={sticker.id}
@@ -274,9 +274,9 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
               const relX = ((info.point.x - rect.left) / rect.width) * 100;
               const relY = ((info.point.y - rect.top) / rect.height) * 100;
               
-              // Constrain sticker within the bounds of card padding
-              const x = Math.max(0, Math.min(88, relX));
-              const y = Math.max(0, Math.min(88, relY));
+              // Constrain sticker within note bounds (allowing it to be placed anywhere)
+              const x = Math.max(-5, Math.min(93, relX));
+              const y = Math.max(-5, Math.min(93, relY));
               updateStickerPosition(note.id, sticker.id, x, y);
             }}
             style={{
@@ -413,7 +413,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
               <span>Task Progress</span>
               <span>{completed}/{total} done {isComplete ? '🌟' : '✨'}</span>
             </div>
-            <div className="h-2 w-full bg-black/10 dark:bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/20 dark:border-black/20">
+            <div className="h-3 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden border border-current/10">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${percent}%` }}
@@ -520,7 +520,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
           </button>
           
           {showFolderMenu && (
-            <div className="absolute bottom-full left-0 mb-2 w-40 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl shadow-xl p-1.5 z-30 animate-fade-in text-slate-700 dark:text-slate-200">
+            <div className="absolute bottom-full left-0 mb-2 w-40 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl shadow-xl p-1.5 z-40 animate-fade-in text-slate-700 dark:text-slate-200">
               <button
                 onClick={() => {
                   updateNote(note.id, { folderId: null });
@@ -582,7 +582,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
                 </button>
 
                 {showStickerMenu && (
-                  <div className="absolute bottom-full right-0 mb-2 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl shadow-xl p-1.5 z-30 animate-fade-in flex gap-1 w-max">
+                  <div className="absolute bottom-full right-0 mb-2 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl shadow-xl p-1.5 z-40 animate-fade-in flex gap-1 w-max">
                     {['🌸', '💗', '🍓', '🧸', '🐻', '🐱', '✨'].map((emoji) => (
                       <button
                         key={emoji}
@@ -612,7 +612,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
               </button>
 
               {showTagMenu && (
-                <div className="absolute bottom-full right-0 mb-2 w-48 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl shadow-xl p-2 z-30 animate-fade-in text-slate-700 dark:text-slate-200">
+                <div className="absolute bottom-full right-0 mb-2 w-48 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl shadow-xl p-2 z-40 animate-fade-in text-slate-700 dark:text-slate-200">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block px-2 mb-1.5">
                     Select Tags:
                   </span>
