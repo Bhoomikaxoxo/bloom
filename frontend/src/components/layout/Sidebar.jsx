@@ -332,37 +332,6 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Theme Picker */}
-      <div className="mb-6">
-        <span className="text-xs font-display font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-3">
-          Palette 🎨
-        </span>
-        <div className="grid grid-cols-3 gap-2 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-2xl border border-slate-200/50 dark:border-slate-800/50">
-          {[
-            { id: 'pastel-dream', name: 'Pastel Dream', colors: ['bg-[#e9d5ff]', 'bg-[#ccfbf1]', 'bg-[#fce7f3]'] },
-            { id: 'mint-garden', name: 'Mint Garden', colors: ['bg-[#d1fae5]', 'bg-[#e6fffa]', 'bg-[#faf5ff]'] },
-            { id: 'sunset-peach', name: 'Sunset Peach', colors: ['bg-[#ffedd5]', 'bg-[#fee2e2]', 'bg-[#fef3c7]'] },
-          ].map((theme) => (
-            <button
-              key={theme.id}
-              onClick={() => setCurrentTheme(theme.id)}
-              className={`w-full aspect-square rounded-xl border flex flex-col p-1.5 items-center justify-center gap-0.5 hover:scale-105 active:scale-95 transition-all relative ${
-                currentTheme === theme.id ? 'border-purple-400 ring-2 ring-purple-400/40 scale-105' : 'border-slate-200 dark:border-slate-700'
-              }`}
-              title={theme.name}
-            >
-              <div className="grid grid-cols-3 gap-0.5 w-full h-full rounded overflow-hidden">
-                <div className={`h-full w-full ${theme.colors[0]}`} />
-                <div className={`h-full w-full ${theme.colors[1]}`} />
-                <div className={`h-full w-full ${theme.colors[2]}`} />
-              </div>
-              {currentTheme === theme.id && (
-                <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-purple-400 rounded-full border border-white" />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* View Mode Toggle */}
       <div className="mb-8">
