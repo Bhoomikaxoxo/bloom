@@ -417,17 +417,17 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
               onClick={() => updateNote(note.id, { colorIndex: idx })}
               className={`w-4 h-4 rounded-full border transition-transform hover:scale-125 ${
                 idx === 1
-                  ? 'bg-[#e9d5ff]'
+                  ? 'bg-[var(--color-note-1)]'
                   : idx === 2
-                  ? 'bg-[#ccfbf1]'
+                  ? 'bg-[var(--color-note-2)]'
                   : idx === 3
-                  ? 'bg-[#fce7f3]'
+                  ? 'bg-[var(--color-note-3)]'
                   : idx === 4
-                  ? 'bg-[#fef9c3]'
+                  ? 'bg-[var(--color-note-4)]'
                   : idx === 5
-                  ? 'bg-[#dbeafe]'
-                  : 'bg-[#ffedd5]'
-              } ${colorIndex === idx ? 'border-purple-500 scale-110' : 'border-slate-200 dark:border-slate-600'}`}
+                  ? 'bg-[var(--color-note-5)]'
+                  : 'bg-[var(--color-note-6)]'
+              } ${colorIndex === idx ? 'border-[var(--color-accent)] scale-110' : 'border-slate-200 dark:border-slate-600'}`}
               title={`Color theme ${idx}`}
             />
           ))}
