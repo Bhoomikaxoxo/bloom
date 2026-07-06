@@ -135,7 +135,7 @@ const Sidebar = () => {
               setActiveTagId(null);
               setShowTrash(false);
             }}
-            className={`w-full text-left px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-between group border ${
+            className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between group border ${
               activeFolderId === null && !activeTagId && !showTrash
                 ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent-text)] border-[var(--color-accent-border)] shadow-sm'
                 : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
@@ -158,7 +158,7 @@ const Sidebar = () => {
             return (
               <div key={folder.id} className="group relative">
                 <div
-                  className={`w-full text-left px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-between border ${
+                  className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between border ${
                     isSelected
                       ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent-text)] border-[var(--color-accent-border)] shadow-sm'
                       : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
@@ -397,7 +397,7 @@ const Sidebar = () => {
         {/* Memory Box (Trash) Toggle */}
         <button
           onClick={() => setShowTrash(!showTrash)}
-          className={`w-full text-left px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-between border ${
+          className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between border ${
             showTrash
               ? 'bg-pink-100/50 dark:bg-pink-950/30 text-pink-600 dark:text-pink-300 shadow-sm border-pink-200/30 dark:border-pink-900/20'
               : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
