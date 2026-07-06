@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import MainCanvas from './MainCanvas';
+import ConfettiPortal from '../ui/ConfettiPortal';
 import useSlateStore from '../../store/useSlateStore';
 import { Menu, X } from 'lucide-react';
 
@@ -21,6 +22,7 @@ const AppLayout = () => {
         backgroundImage: 'linear-gradient(to bottom right, var(--color-bg-from), var(--color-bg-via), var(--color-bg-to))'
       }}
     >
+      <ConfettiPortal />
       {/* Mobile Menu Button */}
       <button
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}

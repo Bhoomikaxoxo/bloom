@@ -20,6 +20,7 @@ const useSlateStore = create(
           boardPosition: { x: 50, y: 80 },
           createdAt: Date.now() - 3600000 * 2, // 2 hours ago
           updatedAt: Date.now() - 3600000 * 2,
+          stickers: [],
         },
         {
           id: 'starter-checklist',
@@ -40,6 +41,7 @@ const useSlateStore = create(
           boardPosition: { x: 450, y: 120 },
           createdAt: Date.now() - 3600000 * 24, // 1 day ago
           updatedAt: Date.now() - 3600000 * 24,
+          stickers: [],
         }
       ],
       
@@ -61,6 +63,7 @@ const useSlateStore = create(
       viewMode: 'grid', // 'grid' | 'board'
       currentTheme: 'pastel-dream', // 'pastel-dream' | 'mint-garden' | 'sunset-peach'
       showTrash: false,
+      confettiTrigger: null,
 
       // --- ACTIONS ---
       setSearchQuery: (query) => set({ searchQuery: query }),
@@ -88,6 +91,9 @@ const useSlateStore = create(
         activeFolderId: show ? null : get().activeFolderId,
         activeTagId: show ? null : get().activeTagId
       }),
+      triggerConfetti: (x, y) => set({ 
+        confettiTrigger: { id: 'confetti-' + Math.random().toString(36).substr(2, 9), x, y } 
+      }),
 
       // --- NOTES CRUD ---
       addNote: (type = 'text') => {
@@ -105,6 +111,7 @@ const useSlateStore = create(
           boardPosition: { x: 100 + Math.random() * 100, y: 100 + Math.random() * 100 },
           createdAt: Date.now(),
           updatedAt: Date.now(),
+          stickers: [],
         };
 
         if (type === 'checklist') {
@@ -220,6 +227,49 @@ const useSlateStore = create(
         folders: state.folders.map((f) =>
           f.id === folderId ? { ...f, ...updates } : f
         )
+      })),
+
+      addSticker: (noteId, type) => set((state) => ({
+        notes: state.notes.map((note) => {
+          if (note.id !== noteId) return note;
+          const currentStickers = note.stickers || [];
+          if (currentStickers.length >= 6) return note;
+          const newSticker = {
+            id: 'sticker-' + Math.random().toString(36).substr(2, 9),
+            type,
+            x: 25 + Math.random() * 50,
+            y: 25 + Math.random() * 50,
+            rotation: Math.floor(Math.random() * 40) - 20, // -20deg to 20deg
+          };
+          return {
+            ...note,
+            stickers: [...currentStickers, newSticker],
+            updatedAt: Date.now()
+          };
+        })
+      })),
+
+      updateStickerPosition: (noteId, stickerId, x, y) => set((state) => ({
+        notes: state.notes.map((note) => {
+          if (note.id !== noteId) return note;
+          return {
+            ...note,
+            stickers: (note.stickers || []).map((sticker) =>
+              sticker.id === stickerId ? { ...sticker, x, y } : sticker
+            )
+          };
+        })
+      })),
+
+      removeSticker: (noteId, stickerId) => set((state) => ({
+        notes: state.notes.map((note) => {
+          if (note.id !== noteId) return note;
+          return {
+            ...note,
+            stickers: (note.stickers || []).filter((sticker) => sticker.id !== stickerId),
+            updatedAt: Date.now()
+          };
+        })
       }))
 
     }),
