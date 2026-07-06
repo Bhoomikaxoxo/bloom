@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import MainCanvas from './MainCanvas';
 import ConfettiPortal from '../ui/ConfettiPortal';
+import ClickSpark from '../ui/ClickSpark';
 import useSlateStore from '../../store/useSlateStore';
 import { Menu, X } from 'lucide-react';
 
@@ -23,6 +24,15 @@ const AppLayout = () => {
       }}
     >
       <ConfettiPortal />
+      <ClickSpark
+        sparkColor="#EC4899"
+        sparkSize={10}
+        sparkRadius={15}
+        sparkCount={8}
+        duration={400}
+        easing="ease-out"
+        extraScale={1}
+      />
       {/* Mobile Menu Button */}
       <button
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
