@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 @layer base {
-  :root, .theme-pastel-dream {
+  :root, html.theme-pastel-dream, .theme-pastel-dream {
     --color-bg-from: #f8fafc;
     --color-bg-via: #fae8ff;
     --color-bg-to: #e0f2fe;
@@ -38,7 +38,7 @@
     --color-note-text-6: #9a3412;
   }
 
-  .theme-mint-garden {
+  html.theme-mint-garden, .theme-mint-garden {
     --color-bg-from: #f0fdf4;
     --color-bg-via: #ecfdf5;
     --color-bg-to: #d1fae5;
@@ -73,7 +73,7 @@
     --color-note-text-6: #6b21a8;
   }
 
-  .theme-sunset-peach {
+  html.theme-sunset-peach, .theme-sunset-peach {
     --color-bg-from: #fff7ed;
     --color-bg-via: #ffedd5;
     --color-bg-to: #fee2e2;
@@ -109,11 +109,12 @@
   }
 
   body {
-    background-color: var(--color-bg-from);
+    background-image: linear-gradient(to bottom right, var(--color-bg-from), var(--color-bg-via), var(--color-bg-to));
+    background-attachment: fixed;
     color: var(--color-text);
     font-family: 'Nunito', sans-serif;
     min-height: 100vh;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-image 0.5s ease, color 0.3s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -126,8 +127,7 @@
   .bg-notebook-grid {
     background-size: 24px 24px;
     background-image: radial-gradient(var(--color-grid-dot) 1px, transparent 1px);
-    background-color: var(--color-bg-from);
-    transition: background-color 0.3s ease;
+    background-color: transparent;
   }
 
   .cutesy-btn {

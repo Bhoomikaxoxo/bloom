@@ -15,7 +15,12 @@ const AppLayout = () => {
   }, [currentTheme, setCurrentTheme]);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden relative bg-gradient-to-br from-[var(--color-bg-from)] via-[var(--color-bg-via)] to-[var(--color-bg-to)] transition-all duration-500 ease-in-out text-[var(--color-text)]">
+    <div
+      className="flex h-screen w-screen overflow-hidden relative transition-all duration-500 ease-in-out text-[var(--color-text)]"
+      style={{
+        backgroundImage: 'linear-gradient(to bottom right, var(--color-bg-from), var(--color-bg-via), var(--color-bg-to))'
+      }}
+    >
       {/* Mobile Menu Button */}
       <button
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
