@@ -136,8 +136,8 @@ const Sidebar = () => {
               setShowTrash(false);
             }}
             className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between group border ${activeFolderId === null && !activeTagId && !showTrash
-                ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent-text)] border-[var(--color-accent-border)] shadow-sm'
-                : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
+              ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent-text)] border-[var(--color-accent-border)] shadow-sm'
+              : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
               }`}
           >
             <div className="flex items-center gap-2">
@@ -157,8 +157,8 @@ const Sidebar = () => {
               <div key={folder.id} className="group relative">
                 <div
                   className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between border ${isSelected
-                      ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent-text)] border-[var(--color-accent-border)] shadow-sm'
-                      : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
+                    ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent-text)] border-[var(--color-accent-border)] shadow-sm'
+                    : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
                     }`}
                 >
                   <div className="flex items-center gap-2 truncate pr-4 flex-1">
@@ -275,8 +275,8 @@ const Sidebar = () => {
                 <button
                   onClick={() => setActiveTagId(isSelected ? null : tag.id)}
                   className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${isSelected
-                      ? 'ring-2 ring-purple-400 scale-105 shadow-sm font-bold'
-                      : 'opacity-85 hover:opacity-100'
+                    ? 'ring-2 ring-purple-400 scale-105 shadow-sm font-bold'
+                    : 'opacity-85 hover:opacity-100'
                     } ${colorClass}`}
                 >
                   #{tag.name}
@@ -310,8 +310,8 @@ const Sidebar = () => {
           <button
             onClick={() => setViewMode('grid')}
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'grid'
-                ? 'bg-white dark:bg-slate-700 shadow-sm text-purple-600 dark:text-purple-300'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              ? 'bg-white dark:bg-slate-700 shadow-sm text-purple-600 dark:text-purple-300'
+              : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
           >
             Grid
@@ -319,8 +319,8 @@ const Sidebar = () => {
           <button
             onClick={() => setViewMode('board')}
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'board'
-                ? 'bg-white dark:bg-slate-700 shadow-sm text-purple-600 dark:text-purple-300'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+              ? 'bg-white dark:bg-slate-700 shadow-sm text-purple-600 dark:text-purple-300'
+              : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
           >
             Board
@@ -333,8 +333,8 @@ const Sidebar = () => {
         <button
           onClick={() => setShowTrash(!showTrash)}
           className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between border ${showTrash
-              ? 'bg-pink-100/50 dark:bg-pink-950/30 text-pink-600 dark:text-pink-300 shadow-sm border-pink-200/30 dark:border-pink-900/20'
-              : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
+            ? 'bg-pink-100/50 dark:bg-pink-950/30 text-pink-600 dark:text-pink-300 shadow-sm border-pink-200/30 dark:border-pink-900/20'
+            : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
             }`}
         >
           <div className="flex items-center gap-2">

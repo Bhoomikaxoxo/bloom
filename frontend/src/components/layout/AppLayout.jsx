@@ -50,9 +50,8 @@ const AppLayout = () => {
 
       {/* Sidebar Drawer on Mobile / Standard Column on Desktop */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 transform md:relative md:translate-x-0 transition-transform duration-300 ease-in-out flex-shrink-0 ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:flex`}
+        className={`fixed inset-y-0 left-0 z-30 transform md:relative md:translate-x-0 transition-transform duration-300 ease-in-out flex-shrink-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          } md:flex`}
       >
         <Sidebar />
       </div>

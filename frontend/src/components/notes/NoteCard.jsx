@@ -470,8 +470,8 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
               <button
                 onClick={() => updateNote(note.id, { isPinned: !note.isPinned })}
                 className={`p-1 rounded-full transition-transform active:scale-75 ${note.isPinned
-                    ? 'text-yellow-300 scale-110 bg-black/30'
-                    : 'hover:bg-white/20 hover:scale-105 text-current opacity-90 hover:opacity-100'
+                  ? 'text-yellow-300 scale-110 bg-black/30'
+                  : 'hover:bg-white/20 hover:scale-105 text-current opacity-90 hover:opacity-100'
                   }`}
                 title={note.isPinned ? "Unpin note" : "Pin note"}
                 aria-label={note.isPinned ? "Unpin note" : "Pin note"}
@@ -482,8 +482,8 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
               <button
                 onClick={() => updateNote(note.id, { isFavorite: !note.isFavorite })}
                 className={`p-1 rounded-full transition-transform active:scale-75 ${note.isFavorite
-                    ? 'text-pink-300 scale-110 bg-black/30'
-                    : 'hover:bg-white/20 hover:scale-105 text-current opacity-90 hover:opacity-100'
+                  ? 'text-pink-300 scale-110 bg-black/30'
+                  : 'hover:bg-white/20 hover:scale-105 text-current opacity-90 hover:opacity-100'
                   }`}
                 title={note.isFavorite ? "Unfavorite" : "Favorite"}
                 aria-label={note.isFavorite ? "Unfavorite" : "Favorite"}
@@ -598,8 +598,8 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
                       }
                       disabled={showTrash}
                       className={`bg-transparent outline-none text-sm w-full font-bold text-white ${item.done
-                          ? 'line-through opacity-90 decoration-2 decoration-purple-300'
-                          : ''
+                        ? 'line-through opacity-90 decoration-2 decoration-purple-300'
+                        : ''
                         }`}
                     />
                   </div>

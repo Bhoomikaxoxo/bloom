@@ -100,8 +100,8 @@ const MainCanvas = () => {
             <button
               onClick={() => setJournalViewMode('journal')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${journalViewMode === 'journal'
-                  ? 'bg-white dark:bg-slate-700 shadow-xs text-purple-600 dark:text-purple-300'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'bg-white dark:bg-slate-700 shadow-xs text-purple-600 dark:text-purple-300'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
               title="Journal Page Focus"
             >
@@ -111,8 +111,8 @@ const MainCanvas = () => {
             <button
               onClick={() => setJournalViewMode('both')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${journalViewMode === 'both'
-                  ? 'bg-white dark:bg-slate-700 shadow-xs text-purple-600 dark:text-purple-300'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'bg-white dark:bg-slate-700 shadow-xs text-purple-600 dark:text-purple-300'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
               title="Split Workspace"
             >
@@ -122,8 +122,8 @@ const MainCanvas = () => {
             <button
               onClick={() => setJournalViewMode('notes')}
               className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${journalViewMode === 'notes'
-                  ? 'bg-white dark:bg-slate-700 shadow-xs text-purple-600 dark:text-purple-300'
-                  : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'bg-white dark:bg-slate-700 shadow-xs text-purple-600 dark:text-purple-300'
+                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                 }`}
               title="Notes Grid Focus"
             >
