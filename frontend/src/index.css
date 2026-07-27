@@ -1,137 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Fraunces:wght@500;700&family=Inter:wght@400;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root, html.theme-pastel-dream, .theme-pastel-dream {
-    --color-bg-from: #f8fafc;
-    --color-bg-via: #fae8ff;
-    --color-bg-to: #e0f2fe;
-    --color-text: #374151;
-    --color-text-muted: #6b7280;
-    --color-card-bg: #ffffff;
-    --color-card-border: #f1f5f9;
-    --color-grid-dot: #cbd5e1;
-    --color-accent: #c084fc;
-    --color-accent-hover: #a855f7;
-    --color-accent-text: #ffffff;
-    --color-accent-focus: rgba(192, 132, 252, 0.4);
+  :root {
+    /* Default Cottagecore Theme Variables */
+    --frame-color: #A87C5D;
+    --frame-color-dark: #8C6647;
+    --paper-color: #FAF6ED;
+    --grid-color: #E8DFCF;
+    --ink-color: #3A322A;
+    --accent-color: #7C9070;
     
-    /* Sidebar matching */
-    --color-sidebar-bg: rgba(255, 255, 255, 0.65);
-    --color-accent-bg: rgba(233, 213, 255, 0.7);
-    --color-accent-border: rgba(216, 180, 254, 0.4);
-    --color-accent-text: #9333ea;
-    
-    --color-note-1: #e9d5ff; /* Lavender */
-    --color-note-2: #ccfbf1; /* Mint */
-    --color-note-3: #fce7f3; /* Blush Pink */
-    --color-note-4: #fef9c3; /* Buttery Yellow */
-    --color-note-5: #dbeafe; /* Baby Blue */
-    --color-note-6: #ffedd5; /* Sunset Peach */
-    
-    --color-note-text-1: #581c87;
-    --color-note-text-2: #115e59;
-    --color-note-text-3: #9d174d;
-    --color-note-text-4: #854d0e;
-    --color-note-text-5: #1e40af;
-    --color-note-text-6: #9a3412;
-  }
+    --handwriting-font: 'Kalam', cursive;
+    --header-font: 'Fraunces', serif;
 
-  html.theme-mint-garden, .theme-mint-garden {
-    --color-bg-from: #f0fdf4;
-    --color-bg-via: #ecfdf5;
-    --color-bg-to: #d1fae5;
-    --color-text: #1e3a1e;
-    --color-text-muted: #3f623f;
-    --color-card-bg: #ffffff;
-    --color-card-border: #e6f4ea;
-    --color-grid-dot: #cbd5e1;
-    --color-accent: #10b981;
-    --color-accent-hover: #059669;
-    --color-accent-text: #ffffff;
-    --color-accent-focus: rgba(16, 185, 129, 0.4);
-    
-    /* Sidebar matching */
-    --color-sidebar-bg: rgba(235, 245, 239, 0.7);
-    --color-accent-bg: rgba(209, 250, 229, 0.75);
-    --color-accent-border: rgba(167, 243, 208, 0.4);
-    --color-accent-text: #059669;
-    
-    --color-note-1: #d1fae5; /* Sage Mint */
-    --color-note-2: #e6fffa; /* Ice Teal */
-    --color-note-3: #f0fdf4; /* Pale Clover */
-    --color-note-4: #fefcbf; /* Cream Dandelion */
-    --color-note-5: #e2f0d9; /* Light Sage Olive */
-    --color-note-6: #faf5ff; /* White Lily */
-    
-    --color-note-text-1: #065f46;
-    --color-note-text-2: #0f766e;
-    --color-note-text-3: #166534;
-    --color-note-text-4: #854d0e;
-    --color-note-text-5: #1b4d3e;
-    --color-note-text-6: #6b21a8;
-  }
+    --color-note-1: #D9C9B0;
+    --color-note-2: #C7D6C0;
+    --color-note-3: #E8C9C1;
+    --color-note-4: #EFE3B8;
+    --color-note-5: #D8CFE8;
+    --color-note-6: #E6C5B3;
 
-  html.theme-sunset-peach, .theme-sunset-peach {
-    --color-bg-from: #fff7ed;
-    --color-bg-via: #ffedd5;
-    --color-bg-to: #fee2e2;
-    --color-text: #451a03;
-    --color-text-muted: #78350f;
-    --color-card-bg: #ffffff;
-    --color-card-border: #fef3c7;
-    --color-grid-dot: #fed7aa;
-    --color-accent: #f97316;
-    --color-accent-hover: #ea580c;
+    --color-note-text-1: #3A322A;
+    --color-note-text-2: #3E4E35;
+    --color-note-text-3: #6B3B39;
+    --color-note-text-4: #614B13;
+    --color-note-text-5: #5E4378;
+    --color-note-text-6: #633B27;
+
+    /* Base mappings */
+    --color-text: var(--ink-color);
+    --color-text-muted: rgba(58, 50, 42, 0.6);
+    --color-card-bg: var(--paper-color);
+    --color-card-border: var(--grid-color);
+    --color-grid-dot: var(--grid-color);
+    --color-accent: var(--accent-color);
+    --color-accent-hover: var(--frame-color-dark);
     --color-accent-text: #ffffff;
-    --color-accent-focus: rgba(249, 115, 22, 0.4);
+    --color-accent-focus: rgba(124, 144, 112, 0.4);
     
-    /* Sidebar matching */
-    --color-sidebar-bg: rgba(253, 244, 235, 0.7);
-    --color-accent-bg: rgba(254, 215, 170, 0.75);
-    --color-accent-border: rgba(253, 186, 116, 0.4);
-    --color-accent-text: #ea580c;
-    
-    --color-note-1: #ffedd5; /* Apricot Cream */
-    --color-note-2: #fee2e2; /* Soft Coral */
-    --color-note-3: #fef3c7; /* Honey Butter */
-    --color-note-4: #fffbeb; /* Custard Yellow */
-    --color-note-5: #ffe4e6; /* Rose Pastel */
-    --color-note-6: #ffecd5; /* Warm Amber */
-    
-    --color-note-text-1: #9a3412;
-    --color-note-text-2: #991b1b;
-    --color-note-text-3: #92400e;
-    --color-note-text-4: #78350f;
-    --color-note-text-5: #9d174d;
-    --color-note-text-6: #7c2d12;
+    --color-sidebar-bg: rgba(243, 237, 222, 0.85);
+    --color-accent-bg: rgba(124, 144, 112, 0.15);
+    --color-accent-border: rgba(124, 144, 112, 0.3);
   }
 
   body {
-    background-image: linear-gradient(to bottom right, var(--color-bg-from), var(--color-bg-via), var(--color-bg-to));
-    background-attachment: fixed;
-    color: var(--color-text);
-    font-family: 'Nunito', sans-serif;
+    background-color: var(--paper-color);
+    color: var(--ink-color);
+    font-family: var(--header-font), 'Quicksand', sans-serif;
     min-height: 100vh;
-    transition: background-image 0.5s ease, color 0.3s ease;
+    transition: background-color 300ms ease, color 300ms ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 700;
+    font-family: var(--header-font), sans-serif;
+    font-weight: 800;
   }
 }
 
 @layer components {
   .bg-notebook-grid {
     background-size: 24px 24px;
-    background-image: radial-gradient(var(--color-grid-dot) 1px, transparent 1px);
+    background-image: radial-gradient(var(--color-grid-dot) 1.5px, transparent 1.5px);
     background-color: transparent;
+    transition: background-color 300ms ease, background-image 300ms ease;
   }
 
   .cutesy-btn {
     @apply px-4 py-2 rounded-2xl font-display font-bold transition-all duration-200 active:scale-95 shadow-sm flex items-center gap-2;
+    background-color: var(--color-accent-bg);
+    color: var(--ink-color);
+    border: 2px solid var(--color-accent-border);
+  }
+  .cutesy-btn:hover {
+    background-color: var(--color-accent);
+    color: white;
   }
   .cutesy-btn:focus {
     outline: none;
@@ -140,6 +86,9 @@
 
   .cutesy-input {
     @apply px-4 py-2 rounded-2xl border bg-white/70 backdrop-blur-md outline-none transition-all duration-200;
+    color: var(--ink-color);
+    border-color: var(--color-card-border);
+    background-color: rgba(255, 255, 255, 0.6);
   }
   .cutesy-input:focus {
     border-color: var(--color-accent);
@@ -170,6 +119,11 @@
   background: rgba(0, 0, 0, 0.2);
 }
 
+/* Theme transitioning helper */
+.theme-transition {
+  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease, fill 300ms ease, stroke 300ms ease;
+}
+
 /* CSS confetti/sparkle animations */
 @keyframes sparkle {
   0% { transform: scale(0) rotate(0deg); opacity: 0; }
@@ -179,4 +133,31 @@
 
 .animate-sparkle {
   animation: sparkle 0.5s ease-out forwards;
+}
+
+@layer utilities {
+  .hand-drawn-border {
+    border: 3px solid var(--ink-color);
+    border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+    transition: border-color 300ms ease, border-radius 300ms ease;
+  }
+  .hand-drawn-border-thin {
+    border: 2px solid var(--ink-color);
+    border-radius: 225px 15px 255px 15px/15px 255px 15px 225px;
+    transition: border-color 300ms ease, border-radius 300ms ease;
+  }
+  .bg-journal-grid {
+    background-color: var(--paper-color);
+    background-image:
+      linear-gradient(to right, var(--grid-color) 1.5px, transparent 1.5px),
+      linear-gradient(to bottom, var(--grid-color) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+    transition: background-color 300ms ease, background-image 300ms ease;
+  }
+  .font-handwritten {
+    font-family: var(--handwriting-font), cursive;
+  }
+  .font-sans-rounded {
+    font-family: var(--header-font), sans-serif;
+  }
 }

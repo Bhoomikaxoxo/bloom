@@ -4,17 +4,22 @@ import MainCanvas from './MainCanvas';
 import ConfettiPortal from '../ui/ConfettiPortal';
 import ClickSpark from '../ui/ClickSpark';
 import useSlateStore from '../../store/useSlateStore';
+import { themes, applyTheme } from '../../utils/theme-config';
 import { Menu, X } from 'lucide-react';
 
 const AppLayout = () => {
-  const currentTheme = useSlateStore((state) => state.currentTheme);
-  const setCurrentTheme = useSlateStore((state) => state.setCurrentTheme);
+  const activeAestheticTheme = useSlateStore((state) => state.activeAestheticTheme || 'toffee');
+  const folderThemes = useSlateStore((state) => state.folderThemes || {});
+  const activeFolderId = useSlateStore((state) => state.activeFolderId);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Initialize theme variable class on body/html
+  // Apply visual theme custom properties dynamically
   useEffect(() => {
-    setCurrentTheme(currentTheme);
-  }, [currentTheme, setCurrentTheme]);
+    const folderOverride = activeFolderId ? folderThemes[activeFolderId] : null;
+    const currentThemeId = folderOverride || activeAestheticTheme;
+    const activeTheme = themes[currentThemeId] || themes.toffee;
+    applyTheme(activeTheme);
+  }, [activeFolderId, activeAestheticTheme, folderThemes]);
 
   return (
     <div

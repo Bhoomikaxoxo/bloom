@@ -1,8 +1,106 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSlateStore from '../../store/useSlateStore';
+import { themes } from '../../utils/theme-config';
 import { StarPawCheckbox, StickerBadge } from '../ui/Doodles';
 import { Pin, Star, Trash2, Folder, Tag, Plus, Check, Undo, Trash, Camera } from 'lucide-react';
+
+// --- DECORATIVE TRIMS ---
+const TornTrim = () => (
+  <svg viewBox="0 0 100 10" preserveAspectRatio="none" className="absolute top-[-1.5px] left-0 w-full h-3.5 text-[var(--paper-color)] pointer-events-none z-10">
+    <path d="M0 0 L100 0 L100 8 L95 6 L90 9 L85 5 L80 8 L75 6 L70 9 L65 5 L60 8 L55 6 L50 8 L45 5 L40 8 L35 6 L30 9 L25 5 L20 8 L15 6 L10 9 L5 5 L0 8 Z" fill="currentColor" stroke="var(--ink-color)" strokeWidth="1.2" />
+  </svg>
+);
+
+const ScallopedTrim = () => (
+  <svg viewBox="0 0 100 10" preserveAspectRatio="none" className="absolute top-0 left-0 w-full h-3 text-[var(--accent-color)] pointer-events-none z-10">
+    <path d="M0 10 Q5 0 10 10 Q15 0 20 10 Q25 0 30 10 Q35 0 40 10 Q45 0 50 10 Q55 0 60 10 Q65 0 70 10 Q75 0 80 10 Q85 0 90 10 Q95 0 100 10 Z" fill="currentColor" stroke="var(--ink-color)" strokeWidth="1" />
+  </svg>
+);
+
+const WaveTrim = () => (
+  <svg viewBox="0 0 100 10" preserveAspectRatio="none" className="absolute top-0 left-0 w-full h-3 text-[var(--accent-color)] pointer-events-none z-10">
+    <path d="M0 10 C15 0 35 0 50 10 C65 20 85 20 100 10 L100 0 L0 0 Z" fill="currentColor" stroke="var(--ink-color)" strokeWidth="1" />
+  </svg>
+);
+
+// --- DECORATIVE STICKERS ---
+const FlowerSticker = () => (
+  <svg viewBox="0 0 24 24" className="w-6 h-6 absolute top-1 right-1 pointer-events-none z-10">
+    <g transform="translate(12,12)">
+      <circle r="2" fill="var(--flower-center, #F5C84C)" />
+      <circle cx="-5" r="3.5" fill="var(--flower-color, #E8536F)" stroke="var(--ink-color)" strokeWidth="1" />
+      <circle cx="5" r="3.5" fill="var(--flower-color, #E8536F)" stroke="var(--ink-color)" strokeWidth="1" />
+      <circle cy="-5" r="3.5" fill="var(--flower-color, #E8536F)" stroke="var(--ink-color)" strokeWidth="1" />
+      <circle cy="5" r="3.5" fill="var(--flower-color, #E8536F)" stroke="var(--ink-color)" strokeWidth="1" />
+    </g>
+  </svg>
+);
+
+
+const DaisySticker = () => (
+  <svg viewBox="0 0 30 30" className="w-5 h-5 absolute top-0.5 right-0.5 pointer-events-none z-10">
+    <g transform="translate(15,15)">
+      <ellipse rx="3" ry="7.5" fill="white" stroke="var(--ink-color)" strokeWidth="1.2" transform="rotate(0)" />
+      <ellipse rx="3" ry="7.5" fill="white" stroke="var(--ink-color)" strokeWidth="1.2" transform="rotate(72)" />
+      <ellipse rx="3" ry="7.5" fill="white" stroke="var(--ink-color)" strokeWidth="1.2" transform="rotate(144)" />
+      <ellipse rx="3" ry="7.5" fill="white" stroke="var(--ink-color)" strokeWidth="1.2" transform="rotate(216)" />
+      <ellipse rx="3" ry="7.5" fill="white" stroke="var(--ink-color)" strokeWidth="1.2" transform="rotate(288)" />
+      <circle r="3.5" fill="#F5C84C" stroke="var(--ink-color)" stroke-width="1.2" />
+    </g>
+  </svg>
+);
+
+const TapeSticker = () => (
+  <svg viewBox="0 0 50 20" className="w-9 h-4 absolute top-0.5 right-0.5 rotate-12 pointer-events-none z-10" fill="none" stroke="var(--accent-color)" strokeWidth="2.5">
+    <path d="M2 4 L48 2 L46 18 L4 16 Z" fill="rgba(155, 133, 196, 0.15)" strokeLinecap="round" strokeLinejoin="round" />
+    <line x1="8" y1="6" x2="8" y2="14" stroke-dasharray="2 2" />
+  </svg>
+);
+
+const WildflowerSticker = () => (
+  <svg viewBox="0 0 24 24" className="w-5 h-5 absolute top-0.5 right-0.5 pointer-events-none z-10">
+    <circle cx="12" cy="12" r="2" fill="var(--poppy-red, #D9534F)" stroke="var(--ink-color)" strokeWidth="1.2" />
+    <circle cx="8" cy="12" r="2.5" fill="var(--accent-color)" stroke="var(--ink-color)" strokeWidth="1.2" />
+    <circle cx="16" cy="12" r="2.5" fill="var(--accent-color)" stroke="var(--ink-color)" strokeWidth="1.2" />
+    <circle cx="12" cy="8" r="2.5" fill="var(--accent-color)" stroke="var(--ink-color)" strokeWidth="1.2" />
+    <circle cx="12" cy="17" r="2.5" fill="var(--accent-color)" stroke="var(--ink-color)" strokeWidth="1.2" />
+  </svg>
+);
+
+const StarSticker = () => (
+  <svg viewBox="0 0 30 30" className="w-5 h-5 absolute top-0.5 right-0.5 pointer-events-none z-10" fill="var(--accent-color)" stroke="var(--ink-color)" strokeWidth="1.5">
+    <path d="M15 2 L18 10 L26 12 L18 14 L15 22 L12 14 L4 12 L12 10 Z" strokeLinejoin="round" />
+  </svg>
+);
+
+const PawStamp = () => (
+  <div className="absolute bottom-1 right-1 w-5 h-5 opacity-25 pointer-events-none z-10" style={{ color: 'var(--ink-color)' }}>
+    <svg viewBox="0 0 24 24" className="w-full h-full">
+      <path d="M12 13c-1.5 0-3 .8-3 2.2s1 2.2 3 2.2 3-.8 3-2.2-1.5-2.2-3-2.2zm-4-2.5c-.7 0-1.2.6-1.2 1.2s.5 1.2 1.2 1.2 1.2-.6 1.2-1.2-.5-1.2-1.2-1.2zm8 0c-.7 0-1.2.6-1.2 1.2s.5 1.2 1.2 1.2 1.2-.6 1.2-1.2-.5-1.2-1.2-1.2zm-5-2.5c-.7 0-1.2.6-1.2 1.2s.5 1.2 1.2 1.2 1.2-.6 1.2-1.2-.5-1.2-1.2-1.2zm2 0c-.7 0-1.2.6-1.2 1.2s.5 1.2 1.3 1.2 1.2-.6 1.2-1.2-.5-1.2-1.2-1.2z" fill="currentColor" />
+    </svg>
+  </div>
+);
+
+const MushroomSticker = () => (
+  <svg viewBox="0 0 30 30" className="w-5 h-5 absolute top-0.5 right-0.5 pointer-events-none z-10">
+    <path d="M12 25 Q12 15 15 15 Q18 15 18 25" fill="var(--paper-color)" stroke="var(--ink-color)" strokeWidth="1.5" />
+    <path d="M6 17 C6 8 24 8 24 17 Z" fill="var(--accent-color)" stroke="var(--ink-color)" strokeWidth="1.5" />
+  </svg>
+);
+
+const LeafSticker = () => (
+  <svg viewBox="0 0 30 30" className="w-5 h-5 absolute top-0.5 right-0.5 pointer-events-none z-10">
+    <path d="M6 24 C9 12 21 6 24 6 C24 6 18 18 6 24 Z" fill="var(--accent-color)" stroke="var(--ink-color)" strokeWidth="1.5" />
+    <line x1="6" y1="24" x2="20" y2="10" stroke="var(--ink-color)" strokeWidth="1.2" />
+  </svg>
+);
+
+const SparkleSticker = () => (
+  <svg viewBox="0 0 30 30" className="w-5 h-5 absolute top-0.5 right-0.5 pointer-events-none z-10" fill="var(--accent-color)" stroke="var(--ink-color)" strokeWidth="1.5">
+    <path d="M15 3 L17.5 12.5 L27 15 L17.5 17.5 L15 27 L12.5 17.5 L3 15 L12.5 12.5 Z" strokeLinejoin="round" />
+  </svg>
+);
 
 const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
   const {
@@ -54,7 +152,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
         }
       }
     };
-    
+
     updateTime();
     const interval = setInterval(updateTime, 30000);
     return () => clearInterval(interval);
@@ -80,12 +178,12 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
   // Map color index to soft pastel styles
   const colorIndex = note.colorIndex || 1;
   const cardColorClasses = {
-    1: 'bg-[var(--color-note-1)] text-[var(--color-note-text-1)] border-[var(--color-note-text-1)]/20',
-    2: 'bg-[var(--color-note-2)] text-[var(--color-note-text-2)] border-[var(--color-note-text-2)]/20',
-    3: 'bg-[var(--color-note-3)] text-[var(--color-note-text-3)] border-[var(--color-note-text-3)]/20',
-    4: 'bg-[var(--color-note-4)] text-[var(--color-note-text-4)] border-[var(--color-note-text-4)]/20',
-    5: 'bg-[var(--color-note-5)] text-[var(--color-note-text-5)] border-[var(--color-note-text-5)]/20',
-    6: 'bg-[var(--color-note-6)] text-[var(--color-note-text-6)] border-[var(--color-note-text-6)]/20',
+    1: 'bg-[var(--color-note-1)] text-[var(--color-note-text-1)] border-[var(--color-note-1)]/40 shadow-md',
+    2: 'bg-[var(--color-note-2)] text-[var(--color-note-text-2)] border-[var(--color-note-2)]/40 shadow-md',
+    3: 'bg-[var(--color-note-3)] text-[var(--color-note-text-3)] border-[var(--color-note-3)]/40 shadow-md',
+    4: 'bg-[var(--color-note-4)] text-[var(--color-note-text-4)] border-[var(--color-note-4)]/40 shadow-md',
+    5: 'bg-[var(--color-note-5)] text-[var(--color-note-text-5)] border-[var(--color-note-5)]/40 shadow-md',
+    6: 'bg-[var(--color-note-6)] text-[var(--color-note-text-6)] border-[var(--color-note-6)]/40 shadow-md',
   };
 
   // Sticker types based on ID or index
@@ -145,7 +243,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
 
     // Clone the note content section into the polaroid container
     const noteCardClone = card.cloneNode(true);
-    
+
     // Clean up interactive elements and replace inputs/textareas
     const interactiveElements = noteCardClone.querySelectorAll('button, form, input[type="text"], textarea');
     interactiveElements.forEach((el) => {
@@ -174,7 +272,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
     // Remove UI helpers like color picker dot tray and drag handlers
     const colorPickerTray = noteCardClone.querySelector('.absolute.left-1\\/2.-translate-x-1\\/2.-bottom-3');
     if (colorPickerTray) colorPickerTray.remove();
-    
+
     noteCardClone.style.transform = 'none';
     noteCardClone.style.scale = '1';
     noteCardClone.style.boxShadow = 'none';
@@ -222,24 +320,50 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
   };
 
   const noteFolder = folders.find((f) => f.id === note.folderId);
+
+  // Get active theme properties
+  const activeAestheticTheme = useSlateStore((state) => state.activeAestheticTheme || 'cottagecore');
+  const folderThemes = useSlateStore((state) => state.folderThemes || {});
+  const currentFolderThemeId = note.folderId ? folderThemes[note.folderId] : null;
+  const themeId = currentFolderThemeId || activeAestheticTheme;
+  const activeTheme = themes[themeId] || themes.cottagecore;
+
+  const borderStyle = activeTheme.noteBorderStyle;
+  const cornerSticker = activeTheme.noteCornerSticker;
+
   const cardStyle = cardColorClasses[colorIndex] || cardColorClasses[1];
+
+  const textureStyle = borderStyle === 'matcha' ? {
+    backgroundImage: 'repeating-linear-gradient(45deg, rgba(43, 38, 32, 0.02) 0 2px, transparent 2px 6px), repeating-linear-gradient(-45deg, rgba(43, 38, 32, 0.02) 0 2px, transparent 2px 6px)',
+    backgroundBlendMode: 'overlay'
+  } : {};
+
+  // Custom theme corner rounding
+  const customRoundedClass = borderStyle === 'wave'
+    ? 'rounded-[8px_24px_8px_24px/24px_8px_24px_8px]'
+    : borderStyle === 'matcha'
+      ? 'rounded-[1.2rem]'
+      : 'rounded-[1.5rem]';
 
   const motionProps = isDraggable
     ? {
-        drag: true,
-        dragMomentum: false,
-        dragConstraints: dragConstraints,
-        onDragEnd: handleDragEnd,
-        style: {
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          x: note.boardPosition?.x || 50,
-          y: note.boardPosition?.y || 80,
-          width: '320px',
-        },
-      }
-    : {};
+      drag: true,
+      dragMomentum: false,
+      dragConstraints: dragConstraints,
+      onDragEnd: handleDragEnd,
+      style: {
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        x: note.boardPosition?.x || 50,
+        y: note.boardPosition?.y || 80,
+        width: '320px',
+        ...textureStyle
+      },
+    }
+    : {
+      style: textureStyle
+    };
 
   return (
     <motion.div
@@ -251,10 +375,27 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
       exit={{ opacity: 0, scale: 0.7, y: 15 }}
       transition={{ type: 'spring', stiffness: 350, damping: 20 }}
       whileHover={showTrash ? {} : { scale: 1.025, rotate: 0.5 }}
-      className={`relative rounded-[2.5rem] p-6 border-2 flex flex-col shadow-sm select-text transition-colors duration-300 ${cardStyle} ${
-        isDraggable ? 'cursor-grab active:cursor-grabbing z-20' : ''
-      } ${showTrash ? 'opacity-75 grayscale-[20%]' : ''}`}
+      className={`relative p-6 border-2 flex flex-col shadow-sm select-text transition-all duration-300 overflow-hidden ${cardStyle} ${customRoundedClass} ${isDraggable ? 'cursor-grab active:cursor-grabbing z-20' : ''
+        } ${showTrash ? 'opacity-75 grayscale-[20%]' : ''}`}
     >
+      {/* Dynamic Top Border Trim */}
+      {borderStyle === 'torn' && <TornTrim />}
+      {borderStyle === 'scalloped' && <ScallopedTrim />}
+      {borderStyle === 'wave' && <WaveTrim />}
+
+      {/* Dynamic Corner Sticker */}
+      {cornerSticker === 'flower' && <FlowerSticker />}
+      {cornerSticker === 'daisy' && <DaisySticker />}
+      {cornerSticker === 'tape' && <TapeSticker />}
+      {cornerSticker === 'wildflower' && <WildflowerSticker />}
+      {cornerSticker === 'star' && <StarSticker />}
+      {cornerSticker === 'mushroom' && <MushroomSticker />}
+      {cornerSticker === 'leaf' && <LeafSticker />}
+      {cornerSticker === 'sparkle' && <SparkleSticker />}
+
+      {/* Paw Stamp in bottom corner */}
+      {cornerSticker === 'paw' && <PawStamp />}
+
       {note.isPinned && !showTrash && <StickerBadge type={stickerType} />}
 
       {/* Draggable Stickers Overlay */}
@@ -269,11 +410,11 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
               const cardElement = cardRef.current;
               if (!cardElement) return;
               const rect = cardElement.getBoundingClientRect();
-              
+
               // Calculate relative percentages
               const relX = ((info.point.x - rect.left) / rect.width) * 100;
               const relY = ((info.point.y - rect.top) / rect.height) * 100;
-              
+
               // Constrain sticker within note bounds (allowing it to be placed anywhere)
               const x = Math.max(-5, Math.min(93, relX));
               const y = Math.max(-5, Math.min(93, relY));
@@ -309,17 +450,17 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
       </div>
 
       <div className="flex justify-between items-start gap-2 mb-3 z-20">
-        <span className="text-[10px] font-bold uppercase tracking-wider bg-white/40 dark:bg-black/20 px-2 py-0.5 rounded-full">
+        <span className="text-[10px] font-bold uppercase tracking-wider bg-black/20 text-current px-2.5 py-1 rounded-full border border-white/20 shadow-xs">
           {relativeTime}
         </span>
-        
+
         <div className="flex items-center gap-1.5 opacity-90 hover:opacity-100">
           {!showTrash ? (
             <>
               {/* Polaroid Export Button */}
               <button
                 onClick={handleExportPolaroid}
-                className="p-1 rounded-full hover:bg-white/40 hover:scale-105 transition-all text-slate-500 hover:text-purple-600 active:scale-75"
+                className="p-1 rounded-full hover:bg-white/20 hover:scale-105 transition-all text-current opacity-90 hover:opacity-100 active:scale-75"
                 title="Export as Polaroid"
                 aria-label="Export note as Polaroid image"
               >
@@ -328,24 +469,22 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
 
               <button
                 onClick={() => updateNote(note.id, { isPinned: !note.isPinned })}
-                className={`p-1 rounded-full transition-transform active:scale-75 ${
-                  note.isPinned
-                    ? 'text-yellow-500 scale-110 bg-white/40'
-                    : 'hover:bg-white/40 hover:scale-105'
-                }`}
+                className={`p-1 rounded-full transition-transform active:scale-75 ${note.isPinned
+                    ? 'text-yellow-300 scale-110 bg-black/30'
+                    : 'hover:bg-white/20 hover:scale-105 text-current opacity-90 hover:opacity-100'
+                  }`}
                 title={note.isPinned ? "Unpin note" : "Pin note"}
                 aria-label={note.isPinned ? "Unpin note" : "Pin note"}
               >
                 <Pin className="w-3.5 h-3.5 fill-current" />
               </button>
-              
+
               <button
                 onClick={() => updateNote(note.id, { isFavorite: !note.isFavorite })}
-                className={`p-1 rounded-full transition-transform active:scale-75 ${
-                  note.isFavorite
-                    ? 'text-pink-500 scale-110 bg-white/40'
-                    : 'hover:bg-white/40 hover:scale-105'
-                }`}
+                className={`p-1 rounded-full transition-transform active:scale-75 ${note.isFavorite
+                    ? 'text-pink-300 scale-110 bg-black/30'
+                    : 'hover:bg-white/20 hover:scale-105 text-current opacity-90 hover:opacity-100'
+                  }`}
                 title={note.isFavorite ? "Unfavorite" : "Favorite"}
                 aria-label={note.isFavorite ? "Unfavorite" : "Favorite"}
               >
@@ -354,7 +493,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
 
               <button
                 onClick={() => deleteNote(note.id)}
-                className="p-1 rounded-full hover:bg-white/40 hover:scale-105 transition-all text-slate-500 hover:text-red-500 active:scale-75"
+                className="p-1 rounded-full hover:bg-white/20 hover:scale-105 transition-all text-current opacity-90 hover:opacity-100 active:scale-75"
                 title="Send to Memory Box"
                 aria-label="Send note to Memory Box"
               >
@@ -395,8 +534,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
         onChange={handleTitleChange}
         disabled={showTrash}
         placeholder="Untitled 🌸"
-        className="w-full bg-transparent font-display font-extrabold text-lg outline-none placeholder-current/40 mb-3 border-b border-transparent hover:border-current/10 focus:border-current/30 transition-all rounded z-20"
-        style={{ color: 'inherit' }}
+        className="w-full bg-transparent font-display font-extrabold text-lg outline-none text-white placeholder:text-white/90 placeholder:opacity-100 mb-3 border-b border-transparent hover:border-white/20 focus:border-white/40 transition-all rounded z-20"
       />
 
       {/* Checklist Progress Bar */}
@@ -406,21 +544,20 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
         const completed = items.filter((i) => i.done).length;
         const percent = Math.round((completed / total) * 100);
         const isComplete = completed === total;
-        
+
         return (
           <div className="mb-3 px-1 z-20">
-            <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-wider mb-1 opacity-70">
+            <div className="flex justify-between items-center text-[10px] font-extrabold uppercase tracking-wider mb-1 text-white opacity-95">
               <span>Task Progress</span>
               <span>{completed}/{total} done {isComplete ? '🌟' : '✨'}</span>
             </div>
-            <div className="h-3 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden border border-current/10">
+            <div className="h-3 w-full bg-black/20 rounded-full overflow-hidden border border-white/20">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${percent}%` }}
                 transition={{ type: 'spring', stiffness: 80, damping: 12 }}
-                className={`h-full rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-300 shadow-sm ${
-                  isComplete ? 'shadow-[0_0_8px_rgba(236,72,153,0.5)] animate-pulse' : ''
-                }`}
+                className={`h-full rounded-full bg-gradient-to-r from-purple-400 via-pink-400 to-yellow-300 shadow-sm ${isComplete ? 'shadow-[0_0_8px_rgba(236,72,153,0.5)] animate-pulse' : ''
+                  }`}
               />
             </div>
           </div>
@@ -434,8 +571,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
             onChange={handleContentChange}
             disabled={showTrash}
             placeholder="Scribble your ideas here... ✨"
-            className="w-full h-full bg-transparent resize-none outline-none text-sm placeholder-current/40 leading-relaxed font-medium"
-            style={{ color: 'inherit' }}
+            className="w-full h-full bg-transparent resize-none outline-none text-sm text-white placeholder:text-white/90 placeholder:opacity-100 leading-relaxed font-semibold"
           />
         ) : (
           <div className="space-y-2">
@@ -461,19 +597,17 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
                         updateChecklistItem(note.id, item.id, { text: e.target.value })
                       }
                       disabled={showTrash}
-                      className={`bg-transparent outline-none text-sm w-full font-medium ${
-                        item.done
-                          ? 'line-through opacity-50 decoration-2 decoration-purple-500/80'
+                      className={`bg-transparent outline-none text-sm w-full font-bold text-white ${item.done
+                          ? 'line-through opacity-90 decoration-2 decoration-purple-300'
                           : ''
-                      }`}
-                      style={{ color: 'inherit' }}
+                        }`}
                     />
                   </div>
                   {!showTrash && (
                     <button
                       type="button"
                       onClick={() => deleteChecklistItem(note.id, item.id)}
-                      className="opacity-0 group-hover/todo:opacity-100 hover:scale-105 p-0.5 rounded text-current/60 hover:text-red-500 transition-all"
+                      className="opacity-0 group-hover/todo:opacity-100 hover:scale-105 p-0.5 rounded text-white hover:text-red-300 transition-all"
                       title="Remove item"
                       aria-label="Remove item"
                     >
@@ -491,12 +625,11 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
                   placeholder="New item..."
                   value={newTodoText}
                   onChange={(e) => setNewTodoText(e.target.value)}
-                  className="w-full bg-white/40 dark:bg-black/25 placeholder-current/40 outline-none text-xs px-3 py-1.5 rounded-xl border border-transparent focus:border-current/20 transition-all"
-                  style={{ color: 'inherit' }}
+                  className="w-full bg-white/20 text-white placeholder:text-white/90 placeholder:opacity-100 outline-none text-xs px-3 py-1.5 rounded-xl border border-white/30 focus:bg-white/30 transition-all font-semibold"
                 />
                 <button
                   type="submit"
-                  className="p-1.5 rounded-xl bg-white/60 dark:bg-black/30 hover:bg-white/80 active:scale-95 transition-all text-current"
+                  className="p-1.5 rounded-xl bg-white/30 hover:bg-white/40 active:scale-95 transition-all text-white border border-white/30 font-bold"
                   title="Add item"
                   aria-label="Add item"
                 >
@@ -513,12 +646,12 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
           <button
             onClick={() => !showTrash && setShowFolderMenu(!showFolderMenu)}
             disabled={showTrash}
-            className="flex items-center gap-1 text-[11px] font-bold bg-white/40 dark:bg-black/20 hover:bg-white/60 px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
+            className="flex items-center gap-1 text-[11px] font-extrabold bg-black/20 hover:bg-black/30 text-current border border-white/20 px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
           >
             <span>{noteFolder ? noteFolder.icon : '📁'}</span>
             <span>{noteFolder ? noteFolder.name : 'Unassigned'}</span>
           </button>
-          
+
           {showFolderMenu && (
             <div className="absolute bottom-full left-0 mb-2 w-40 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-2xl shadow-xl p-1.5 z-40 animate-fade-in text-slate-700 dark:text-slate-200">
               <button
@@ -555,14 +688,14 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
               return (
                 <span
                   key={tagId}
-                  className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-white/30 dark:bg-black/15 shadow-sm uppercase"
+                  className="text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-black/20 text-current border border-white/20 shadow-xs uppercase"
                 >
                   #{activeTag.name}
                 </span>
               );
             })}
             {(note.tags || []).length > 2 && (
-              <span className="text-[9px] font-bold px-1 py-0.5 rounded-md bg-white/30 dark:bg-black/15 shadow-sm">
+              <span className="text-[9px] font-extrabold px-1 py-0.5 rounded-md bg-black/20 text-current border border-white/20 shadow-xs">
                 +{(note.tags || []).length - 2}
               </span>
             )}
@@ -574,7 +707,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
               <div className="relative" ref={stickerMenuRef}>
                 <button
                   onClick={() => setShowStickerMenu(!showStickerMenu)}
-                  className="p-1 rounded-xl bg-white/40 dark:bg-black/20 hover:bg-white/60 transition-all flex items-center justify-center text-xs font-bold"
+                  className="p-1 rounded-xl bg-black/20 hover:bg-black/30 text-current border border-white/20 transition-all flex items-center justify-center text-xs font-bold cursor-pointer"
                   title="Sticker Stamps"
                   aria-label="Add sticker stamp"
                 >
@@ -592,7 +725,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
                           setShowStickerMenu(false);
                         }}
                         disabled={(note.stickers || []).length >= 6}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-lg transition-transform active:scale-75 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-lg transition-transform active:scale-75 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                         title={(note.stickers || []).length >= 6 ? "Max 6 stickers reached" : `Add ${emoji} stamp`}
                       >
                         {emoji}
@@ -604,7 +737,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
 
               <button
                 onClick={() => setShowTagMenu(!showTagMenu)}
-                className="p-1 rounded-xl bg-white/40 dark:bg-black/20 hover:bg-white/60 transition-colors"
+                className="p-1 rounded-xl bg-black/20 hover:bg-black/30 text-current border border-white/20 transition-colors cursor-pointer"
                 title="Manage tags"
                 aria-label="Manage tags"
               >
@@ -651,19 +784,9 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null }) => {
               key={idx}
               type="button"
               onClick={() => updateNote(note.id, { colorIndex: idx })}
-              className={`w-4 h-4 rounded-full border transition-transform hover:scale-125 ${
-                idx === 1
-                  ? 'bg-[var(--color-note-1)]'
-                  : idx === 2
-                  ? 'bg-[var(--color-note-2)]'
-                  : idx === 3
-                  ? 'bg-[var(--color-note-3)]'
-                  : idx === 4
-                  ? 'bg-[var(--color-note-4)]'
-                  : idx === 5
-                  ? 'bg-[var(--color-note-5)]'
-                  : 'bg-[var(--color-note-6)]'
-              } ${colorIndex === idx ? 'border-[var(--color-accent)] scale-110' : 'border-slate-200 dark:border-slate-600'}`}
+              style={{ background: `var(--color-note-${idx})` }}
+              className={`w-4 h-4 rounded-full border transition-transform hover:scale-125 ${colorIndex === idx ? 'border-[var(--color-accent)] scale-110' : 'border-slate-200 dark:border-slate-600'
+                }`}
               title={`Color theme ${idx}`}
             />
           ))}

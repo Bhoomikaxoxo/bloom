@@ -44,19 +44,19 @@ const useSlateStore = create(
           stickers: [],
         }
       ],
-      
+
       folders: [
         { id: 'folder-work', name: 'Work', icon: '💼' },
         { id: 'folder-personal', name: 'Personal', icon: '💖' },
         { id: 'folder-ideas', name: 'Ideas', icon: '💡' }
       ],
-      
+
       tags: [
         { id: 'tag-urgent', name: 'Urgent', color: 'pink' },
         { id: 'tag-creative', name: 'Creative', color: 'lavender' },
         { id: 'tag-daily', name: 'Daily', color: 'mint' }
       ],
-      
+
       searchQuery: '',
       activeFolderId: null,
       activeTagId: null,
@@ -64,6 +64,10 @@ const useSlateStore = create(
       currentTheme: 'pastel-dream', // 'pastel-dream' | 'mint-garden' | 'sunset-peach'
       showTrash: false,
       confettiTrigger: null,
+      journalViewMode: 'both', // 'both' | 'journal' | 'notes'
+      journals: {}, // { [folderId || 'global']: { title, content1, content2 } }
+      activeAestheticTheme: 'toffee',
+      folderThemes: {}, // { [folderId]: themeId }
 
       // --- ACTIONS ---
       setSearchQuery: (query) => set({ searchQuery: query }),
@@ -73,26 +77,51 @@ const useSlateStore = create(
       setCurrentTheme: (theme) => {
         const selectedTheme = theme === 'midnight-stars' ? 'pastel-dream' : theme;
         set({ currentTheme: selectedTheme });
-        
+
         const root = document.documentElement;
-        
+
         // Remove existing theme classes
         const classesToRemove = Array.from(root.classList).filter(
           (c) => c.startsWith('theme-') || c === 'dark'
         );
         classesToRemove.forEach((c) => root.classList.remove(c));
-        
+
         // Add new classes
         root.classList.add(`theme-${selectedTheme}`);
       },
-      setShowTrash: (show) => set({ 
-        showTrash: show, 
+      setShowTrash: (show) => set({
+        showTrash: show,
         // Reset category/tag filters when entering trash, and vice versa
         activeFolderId: show ? null : get().activeFolderId,
         activeTagId: show ? null : get().activeTagId
       }),
-      triggerConfetti: (x, y) => set({ 
-        confettiTrigger: { id: 'confetti-' + Math.random().toString(36).substr(2, 9), x, y } 
+      triggerConfetti: (x, y) => set({
+        confettiTrigger: { id: 'confetti-' + Math.random().toString(36).substr(2, 9), x, y }
+      }),
+      setJournalViewMode: (mode) => set({ journalViewMode: mode }),
+      updateJournal: (folderId, updates) => set((state) => {
+        const key = folderId || 'global';
+        return {
+          journals: {
+            ...state.journals,
+            [key]: {
+              ...(state.journals[key] || { title: '', content1: '', content2: '' }),
+              ...updates
+            }
+          }
+        };
+      }),
+      setAestheticTheme: (themeId) => set({ activeAestheticTheme: themeId }),
+      setFolderTheme: (folderId, themeId) => set((state) => ({
+        folderThemes: {
+          ...state.folderThemes,
+          [folderId]: themeId
+        }
+      })),
+      removeFolderTheme: (folderId) => set((state) => {
+        const newFolderThemes = { ...state.folderThemes };
+        delete newFolderThemes[folderId];
+        return { folderThemes: newFolderThemes };
       }),
 
       // --- NOTES CRUD ---
@@ -207,7 +236,7 @@ const useSlateStore = create(
         const icons = ['📁', '💖', '💼', '💡', '🌟', '🍀', '🍓', '🎒'];
         const randomIcon = icons[Math.floor(Math.random() * icons.length)];
         const newFolder = { id, name, icon: randomIcon };
-        
+
         set((state) => ({
           folders: [...state.folders, newFolder]
         }));
