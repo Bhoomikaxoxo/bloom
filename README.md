@@ -1,4 +1,9 @@
-# Bloom
+# Bloom 🌸
+
+[![React](https://img.shields.io/badge/React-19-blue?logo=react)](https://react.dev)
+[![Vite](https://img.shields.io/badge/Vite-7.3-646CFF?logo=vite)](https://vitejs.dev)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com)
+[![Zustand](https://img.shields.io/badge/State-Zustand-orange)](https://github.com/pmndrs/zustand)
 
 A high-performance, interactive web application for spatial note-taking, task management, and document organization. Built with React 19, Vite, Tailwind CSS, and Zustand, Bloom delivers flexible spatial canvas layouts, full Unicode dataset searching, custom theme token injection, and hardware-accelerated animations.
 
