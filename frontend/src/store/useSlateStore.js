@@ -61,18 +61,22 @@ const useSlateStore = create(
       activeFolderId: null,
       activeTagId: null,
       viewMode: 'grid', // 'grid' | 'board'
-      currentTheme: 'pastel-dream', // 'pastel-dream' | 'mint-garden' | 'sunset-peach'
+      currentTheme: 'pastel-dream',
       showTrash: false,
+      showFavorites: false,
       confettiTrigger: null,
-      journalViewMode: 'both', // 'both' | 'journal' | 'notes'
-      journals: {}, // { [folderId || 'global']: { title, content1, content2 } }
+      journalViewMode: 'notes',
+      journals: {},
       activeAestheticTheme: 'toffee',
-      folderThemes: {}, // { [folderId]: themeId }
+      folderThemes: {},
+      sortMode: 'newest', // 'newest' | 'oldest' | 'az' | 'color'
+      openNoteId: null, // ID of note open in full editor
 
       // --- ACTIONS ---
       setSearchQuery: (query) => set({ searchQuery: query }),
-      setActiveFolderId: (id) => set({ activeFolderId: id, activeTagId: null, showTrash: false }),
-      setActiveTagId: (id) => set({ activeTagId: id, activeFolderId: null, showTrash: false }),
+      setActiveFolderId: (id) => set({ activeFolderId: id, activeTagId: null, showTrash: false, showFavorites: false }),
+      setActiveTagId: (id) => set({ activeTagId: id, activeFolderId: null, showTrash: false, showFavorites: false }),
+      setShowFavorites: (show) => set({ showFavorites: show, activeFolderId: null, activeTagId: null, showTrash: false }),
       setViewMode: (mode) => set({ viewMode: mode }),
       setCurrentTheme: (theme) => {
         const selectedTheme = theme === 'midnight-stars' ? 'pastel-dream' : theme;
@@ -91,7 +95,7 @@ const useSlateStore = create(
       },
       setShowTrash: (show) => set({
         showTrash: show,
-        // Reset category/tag filters when entering trash, and vice versa
+        showFavorites: false,
         activeFolderId: show ? null : get().activeFolderId,
         activeTagId: show ? null : get().activeTagId
       }),
@@ -99,6 +103,8 @@ const useSlateStore = create(
         confettiTrigger: { id: 'confetti-' + Math.random().toString(36).substr(2, 9), x, y }
       }),
       setJournalViewMode: (mode) => set({ journalViewMode: mode }),
+      setSortMode: (mode) => set({ sortMode: mode }),
+      setOpenNoteId: (id) => set({ openNoteId: id }),
       updateJournal: (folderId, updates) => set((state) => {
         const key = folderId || 'global';
         return {
@@ -147,12 +153,41 @@ const useSlateStore = create(
           newNote.checklist = [];
         } else {
           newNote.content = '';
+          newNote.richText = ''; // HTML from TipTap editor
         }
 
         set((state) => ({
           notes: [newNote, ...state.notes]
         }));
         return id;
+      },
+
+      duplicateNote: (noteId) => {
+        const orig = get().notes.find((n) => n.id === noteId);
+        if (!orig) return null;
+        const newId = 'note-' + Math.random().toString(36).substr(2, 9);
+        const dup = {
+          ...orig,
+          id: newId,
+          title: orig.title ? `${orig.title} (Copy)` : 'Untitled (Copy)',
+          isPinned: false,
+          boardPosition: {
+            x: (orig.boardPosition?.x || 100) + 24,
+            y: (orig.boardPosition?.y || 100) + 24,
+          },
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+        if (orig.checklist) {
+          dup.checklist = orig.checklist.map((item) => ({
+            ...item,
+            id: 'item-' + Math.random().toString(36).substr(2, 9),
+          }));
+        }
+        set((state) => ({
+          notes: [dup, ...state.notes],
+        }));
+        return newId;
       },
 
       updateNote: (noteId, updates) => set((state) => ({
@@ -304,6 +339,32 @@ const useSlateStore = create(
     }),
     {
       name: 'slate-notes-storage', // name of item in localStorage
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.journalViewMode = 'notes';
+          if (state.activeAestheticTheme === 'toffee' || state.activeAestheticTheme === 'sunsetMeadow') {
+            state.activeAestheticTheme = 'caramel';
+          } else if (state.activeAestheticTheme === 'sage') {
+            state.activeAestheticTheme = 'rose';
+          } else if (state.activeAestheticTheme === 'matchaFrog') {
+            state.activeAestheticTheme = 'matcha';
+          } else if (state.activeAestheticTheme === 'lilacMist') {
+            state.activeAestheticTheme = 'lavender';
+          }
+          if (Array.isArray(state.notes)) {
+            state.notes.forEach((n) => {
+              if (Array.isArray(n.checklist)) {
+                n.checklist.forEach((item) => {
+                  if (item.text && item.text.includes('-')) {
+                    // Replace hyphens that separate words
+                    item.text = item.text.replace(/-/g, ' ').trim();
+                  }
+                });
+              }
+            });
+          }
+        }
+      },
     }
   )
 );

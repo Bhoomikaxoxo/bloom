@@ -46,16 +46,20 @@ export default function ShortcutsModal() {
 
     useEffect(() => {
         const handleShow = () => setIsOpen(true);
-        const handleEscape = (e) => {
+        const handleKeyDown = (e) => {
             if (e.key === 'Escape') setIsOpen(false);
+            if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+                e.preventDefault();
+                setIsOpen((prev) => !prev);
+            }
         };
 
         window.addEventListener('show-shortcuts', handleShow);
-        window.addEventListener('keydown', handleEscape);
+        window.addEventListener('keydown', handleKeyDown);
 
         return () => {
             window.removeEventListener('show-shortcuts', handleShow);
-            window.removeEventListener('keydown', handleEscape);
+            window.removeEventListener('keydown', handleKeyDown);
         };
     }, []);
 

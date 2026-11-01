@@ -1,23 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import useSlateStore from '../../store/useSlateStore';
-import { Grid, Trash2, Folder, Tag, Plus, X } from 'lucide-react';
-import { StarDoodle } from '../ui/Doodles';
+import { Plus, X, Star, FileText, Folder as FolderIcon, Tag as TagIcon, Trash2, LayoutGrid, Move, HelpCircle, CheckSquare } from 'lucide-react';
 import EmojiPickerPopover from '../ui/EmojiPickerPopover';
 
-const Sidebar = () => {
+const Sidebar = ({ onCloseMobile }) => {
   const {
     folders,
     tags,
     activeFolderId,
     activeTagId,
     viewMode,
-    currentTheme,
     showTrash,
+    showFavorites,
     setActiveFolderId,
     setActiveTagId,
     setViewMode,
-    setCurrentTheme,
     setShowTrash,
+    setShowFavorites,
     addFolder,
     deleteFolder,
     updateFolder,
@@ -33,11 +32,16 @@ const Sidebar = () => {
   const [newTagColor, setNewTagColor] = useState('lavender');
   const [showAddTag, setShowAddTag] = useState(false);
 
-  // Emoji customization state: { folderId: string, position: { top: number, left: number } } | null
-  const [activeEmojiPicker, setActiveEmojiPicker] = useState(null);
-
   const activeNotesCount = notes.filter((n) => n.deletedAt === null).length;
+  const favoritesCount = notes.filter((n) => n.isFavorite && n.deletedAt === null).length;
   const deletedNotesCount = notes.filter((n) => n.deletedAt !== null).length;
+
+  const allChecklistItems = notes
+    .filter((n) => n.deletedAt === null && n.type === 'checklist')
+    .flatMap((n) => n.checklist || []);
+  const completedTasksCount = allChecklistItems.filter((i) => i.done).length;
+  const totalTasksCount = allChecklistItems.length;
+  const tasksPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
 
   const handleAddFolder = (e) => {
     e.preventDefault();
@@ -57,145 +61,162 @@ const Sidebar = () => {
     }
   };
 
-  // Close emoji selector on click outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (emojiMenuRef.current && !emojiMenuRef.current.contains(e.target)) {
-        setEditingFolderId(null);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const tagColors = [
-    { name: 'lavender', class: 'bg-[#e9d5ff]' },
-    { name: 'mint', class: 'bg-[#ccfbf1]' },
-    { name: 'pink', class: 'bg-[#fce7f3]' },
-    { name: 'yellow', class: 'bg-[#fef9c3]' },
-    { name: 'blue', class: 'bg-[#dbeafe]' },
-  ];
-
-  const cuteEmojis = [
-    '📁', '💼', '💖', '💡', '🌟', '🍀', '🍓', '🎒',
-    '🧁', '🧸', '🎨', '🎮', '✈️', '🌸', '🍩', '🥑',
-    '🪐', '🌈', '🍪', '🐱', '🐶', '🦄', '🐝', '🔮'
-  ];
+  const selectView = (type, id = null) => {
+    if (type === 'all') {
+      setActiveFolderId(null);
+      setActiveTagId(null);
+      setShowTrash(false);
+      setShowFavorites(false);
+    } else if (type === 'favorites') {
+      setShowFavorites(true);
+    } else if (type === 'folder') {
+      setActiveFolderId(id);
+    } else if (type === 'tag') {
+      setActiveTagId(id);
+    } else if (type === 'trash') {
+      setShowTrash(true);
+    }
+    if (onCloseMobile) onCloseMobile();
+  };
 
   return (
-    <aside className="w-64 bg-[var(--color-sidebar-bg)] backdrop-blur-md border-r border-slate-200/50 dark:border-slate-800/50 p-6 flex flex-col h-screen overflow-y-auto select-none transition-colors duration-300">
+    <aside className="w-64 flex-shrink-0 bg-[var(--color-sidebar-bg)] border-r border-black/[0.07] dark:border-white/[0.08] p-4 flex flex-col h-screen overflow-y-auto select-none transition-colors">
       {/* Brand Header */}
-      <div className="flex items-center gap-2 mb-8">
-        <div className="relative">
-          <span className="text-3xl">🪞</span>
-          <StarDoodle className="absolute -top-1 -right-2 w-4 h-4 text-purple-400 animate-bounce" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-display font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500 tracking-wide">
-            Slate
-          </h1>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 tracking-wider uppercase font-semibold">notes & tasks</p>
+      <div className="px-2 pt-1 pb-4 mb-3 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center font-bold text-base shadow-xs">
+            🌸
+          </div>
+          <div>
+            <h1 className="text-base font-bold tracking-tight text-[var(--color-text)] leading-none">
+              Bloom
+            </h1>
+            <p className="text-[10px] text-[var(--color-text-muted)] font-semibold tracking-wider uppercase mt-1">
+              Notes & Workspace
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Primary Folder Section */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-xs font-display font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">
-          <span>Folders 🍯</span>
+      {/* Main Views (All Notes, Favorites) */}
+      <div className="mb-4 space-y-1">
+        <button
+          onClick={() => selectView('all')}
+          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+            activeFolderId === null && !activeTagId && !showTrash && !showFavorites
+              ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
+              : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <FileText className="w-4 h-4 opacity-70" />
+            <span>All Notes</span>
+          </div>
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.05] dark:bg-white/[0.08] opacity-75">
+            {activeNotesCount}
+          </span>
+        </button>
+
+        <button
+          onClick={() => selectView('favorites')}
+          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+            showFavorites
+              ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
+              : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+            <span>Favorites</span>
+          </div>
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.05] dark:bg-white/[0.08] opacity-75">
+            {favoritesCount}
+          </span>
+        </button>
+      </div>
+
+      {/* Folders Section */}
+      <div className="mb-5">
+        <div className="flex items-center justify-between px-2 mb-1.5">
+          <span className="text-[11px] font-bold text-[var(--color-text-muted)] tracking-wider uppercase">
+            Folders
+          </span>
           <button
             onClick={() => setShowAddFolder(!showAddFolder)}
-            className="hover:text-accent p-0.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
             title="Create Folder"
-            aria-label="Create new folder"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {showAddFolder && (
-          <form onSubmit={handleAddFolder} className="mb-3 flex gap-1.5 animate-fade-in">
-            <input
-              type="text"
-              placeholder="Jar name..."
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              className="cutesy-input text-sm py-1.5 px-3 flex-1 border-slate-200 dark:border-slate-700 bg-white/90"
-              autoFocus
-            />
-            <button type="submit" className="cutesy-btn text-xs py-1.5 px-2 bg-purple-400 hover:bg-purple-500 text-white font-bold">
-              Add
-            </button>
+          <form onSubmit={handleAddFolder} className="mb-2 px-1">
+            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-2xs">
+              <input
+                type="text"
+                placeholder="Folder name…"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                autoFocus
+                className="w-full text-xs bg-transparent outline-none px-1 text-[var(--color-text)]"
+              />
+              <button
+                type="submit"
+                className="px-2 py-1 bg-[var(--color-accent)] text-white text-[11px] font-bold rounded-md hover:opacity-90"
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddFolder(false)}
+                className="p-1 text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
           </form>
         )}
 
-        <div className="space-y-1">
-          <button
-            onClick={() => {
-              setActiveFolderId(null);
-              setActiveTagId(null);
-              setShowTrash(false);
-            }}
-            className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between group border ${activeFolderId === null && !activeTagId && !showTrash
-              ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent-text)] border-[var(--color-accent-border)] shadow-sm'
-              : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
-              }`}
-          >
-            <div className="flex items-center gap-2">
-              <span>🌟</span>
-              <span>All Notes</span>
-            </div>
-            <span className="text-xs bg-slate-200/50 dark:bg-slate-800/80 px-2 py-0.5 rounded-full text-slate-500">
-              {activeNotesCount}
-            </span>
-          </button>
-
+        <div className="space-y-0.5">
           {folders.map((folder) => {
-            const isSelected = activeFolderId === folder.id;
             const count = notes.filter((n) => n.folderId === folder.id && n.deletedAt === null).length;
+            const isSelected = activeFolderId === folder.id && !showTrash && !showFavorites;
 
             return (
-              <div key={folder.id} className="group relative">
-                <div
-                  className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between border ${isSelected
-                    ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent-text)] border-[var(--color-accent-border)] shadow-sm'
-                    : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
-                    }`}
-                >
-                  <div className="flex items-center gap-2 truncate pr-4 flex-1">
-                    {/* Reusable Clickable Emoji Picker Popover */}
-                    <EmojiPickerPopover
-                      currentEmoji={folder.icon}
-                      onSelectEmoji={(newEmoji) => updateFolder(folder.id, { icon: newEmoji })}
-                      buttonTitle={`Change emoji for "${folder.name}"`}
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => setActiveFolderId(folder.id)}
-                      className="truncate text-left flex-1 cursor-pointer"
-                    >
-                      {folder.name}
-                    </button>
-                  </div>
-
-                  <span className="text-xs bg-slate-200/50 dark:bg-slate-800/80 px-2 py-0.5 rounded-full text-slate-500 group-hover:hidden">
+              <div
+                key={folder.id}
+                className={`group flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
+                    : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                }`}
+                onClick={() => selectView('folder', folder.id)}
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <EmojiPickerPopover
+                    currentEmoji={folder.icon}
+                    onSelectEmoji={(emoji) => updateFolder(folder.id, { icon: emoji })}
+                  />
+                  <span className="truncate">{folder.name}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] opacity-60 px-1.5 py-0.2 rounded-full">
                     {count}
                   </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`Delete folder "${folder.name}"? Notes inside will stay in All Notes.`)) {
+                        deleteFolder(folder.id);
+                      }
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 rounded transition-opacity"
+                    title="Delete folder"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
                 </div>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (confirm(`Delete the "${folder.name}" folder? Notes will remain unassigned.`)) {
-                      deleteFolder(folder.id);
-                    }
-                  }}
-                  className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-opacity p-1 rounded cursor-pointer"
-                  title="Delete Folder"
-                  aria-label={`Delete folder ${folder.name}`}
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
               </div>
             );
           })}
@@ -203,147 +224,141 @@ const Sidebar = () => {
       </div>
 
       {/* Tags Section */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-xs font-display font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-3">
-          <span>Tags 🏷️</span>
+      <div className="mb-5">
+        <div className="flex items-center justify-between px-2 mb-1.5">
+          <span className="text-[11px] font-bold text-[var(--color-text-muted)] tracking-wider uppercase">
+            Tags
+          </span>
           <button
             onClick={() => setShowAddTag(!showAddTag)}
-            className="hover:text-accent p-0.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="p-1 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
             title="Create Tag"
-            aria-label="Create new tag"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {showAddTag && (
-          <form onSubmit={handleAddTag} className="mb-3 p-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl space-y-2 animate-fade-in">
-            <input
-              type="text"
-              placeholder="Tag name..."
-              value={newTagName}
-              onChange={(e) => setNewTagName(e.target.value)}
-              className="cutesy-input text-sm py-1 px-2.5 w-full border-slate-200 dark:border-slate-700 bg-white"
-              autoFocus
-            />
-            <div className="flex gap-1 items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-400">Color:</span>
-              <div className="flex gap-1">
-                {tagColors.map((color) => (
-                  <button
-                    key={color.name}
-                    type="button"
-                    onClick={() => setNewTagColor(color.name)}
-                    className={`w-4.5 h-4.5 rounded-full border transition-all ${color.class} ${newTagColor === color.name ? 'ring-2 ring-purple-400 border-white scale-110' : 'border-slate-300 dark:border-slate-600'
-                      }`}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="flex justify-end gap-1">
+          <form onSubmit={handleAddTag} className="mb-2 px-1">
+            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-2xs">
+              <input
+                type="text"
+                placeholder="Tag name…"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                autoFocus
+                className="w-full text-xs bg-transparent outline-none px-1 text-[var(--color-text)]"
+              />
+              <button
+                type="submit"
+                className="px-2 py-1 bg-[var(--color-accent)] text-white text-[11px] font-bold rounded-md hover:opacity-90"
+              >
+                Add
+              </button>
               <button
                 type="button"
                 onClick={() => setShowAddTag(false)}
-                className="text-[10px] px-2 py-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="p-1 text-slate-400 hover:text-slate-600"
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="cutesy-btn text-[10px] py-1 px-2 bg-purple-400 hover:bg-purple-500 text-white font-bold"
-              >
-                Create
+                <X className="w-3 h-3" />
               </button>
             </div>
           </form>
         )}
 
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 px-1">
           {tags.map((tag) => {
-            const isSelected = activeTagId === tag.id;
-            const colorMap = {
-              pink: 'bg-rose-100 text-rose-700 border-rose-200/60 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-900/30',
-              lavender: 'bg-purple-100 text-purple-700 border-purple-200/60 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-900/30',
-              mint: 'bg-teal-100 text-teal-700 border-teal-200/60 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-900/30',
-              yellow: 'bg-yellow-100 text-yellow-700 border-yellow-200/60 dark:bg-yellow-950/40 dark:text-yellow-300 dark:border-yellow-900/30',
-              blue: 'bg-blue-100 text-blue-700 border-blue-200/60 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-900/30',
-            };
-            const colorClass = colorMap[tag.color] || colorMap.blue;
+            const count = notes.filter((n) => n.tags?.includes(tag.id) && n.deletedAt === null).length;
+            const isSelected = activeTagId === tag.id && !showTrash && !showFavorites;
 
             return (
-              <div key={tag.id} className="relative group/tag flex items-center">
-                <button
-                  onClick={() => setActiveTagId(isSelected ? null : tag.id)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all ${isSelected
-                    ? 'ring-2 ring-purple-400 scale-105 shadow-sm font-bold'
-                    : 'opacity-85 hover:opacity-100'
-                    } ${colorClass}`}
-                >
-                  #{tag.name}
-                </button>
-                <button
+              <button
+                key={tag.id}
+                onClick={() => selectView('tag', tag.id)}
+                className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-[var(--color-accent)] text-white shadow-xs'
+                    : 'bg-black/[0.04] dark:bg-white/[0.06] text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.08]'
+                }`}
+              >
+                <span>#{tag.name}</span>
+                <span className={`text-[10px] px-1 rounded-full ${isSelected ? 'bg-white/20' : 'bg-black/10 dark:bg-white/10'}`}>
+                  {count}
+                </span>
+                <span
                   onClick={(e) => {
                     e.stopPropagation();
-                    if (confirm(`Remove the tag "#${tag.name}"? It will be removed from all notes.`)) {
-                      deleteTag(tag.id);
-                    }
+                    deleteTag(tag.id);
                   }}
-                  className="absolute -top-1.5 -right-1.5 bg-red-400 hover:bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover/tag:opacity-100 transition-opacity border border-white"
-                  title="Remove Tag"
-                  aria-label={`Remove tag ${tag.name}`}
+                  className="opacity-0 group-hover:opacity-100 text-xs hover:text-red-400 ml-0.5"
+                  title="Delete tag"
                 >
-                  <X className="w-2 h-2" />
-                </button>
-              </div>
+                  ×
+                </span>
+              </button>
             );
           })}
         </div>
       </div>
 
+      {/* Spacer to push controls down */}
+      <div className="flex-1" />
 
-      {/* View Mode Toggle */}
-      <div className="mb-8">
-        <span className="text-xs font-display font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-3">
-          Workspace View 🗺️
-        </span>
-        <div className="flex bg-slate-50 dark:bg-slate-800/40 p-1 rounded-xl border border-slate-200/50 dark:border-slate-800/50">
-          <button
-            onClick={() => setViewMode('grid')}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'grid'
-              ? 'bg-white dark:bg-slate-700 shadow-sm text-purple-600 dark:text-purple-300'
-              : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-          >
-            Grid
-          </button>
-          <button
-            onClick={() => setViewMode('board')}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold rounded-lg transition-all ${viewMode === 'board'
-              ? 'bg-white dark:bg-slate-700 shadow-sm text-purple-600 dark:text-purple-300'
-              : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-              }`}
-          >
-            Board
-          </button>
-        </div>
-      </div>
+      {/* Bottom Progress & Memory Box */}
+      <div className="pt-3 border-t border-black/[0.06] dark:border-white/[0.08] space-y-3">
+        {/* Daily Tasks Progress */}
+        {totalTasksCount > 0 && (
+          <div className="p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
+            <div className="flex justify-between items-center text-xs font-semibold mb-1.5">
+              <div className="flex items-center gap-1.5 text-[var(--color-text)]">
+                <CheckSquare className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+                <span>Tasks Done</span>
+              </div>
+              <span className="text-[11px] font-bold text-[var(--color-accent)]">
+                {completedTasksCount}/{totalTasksCount} ({tasksPercent}%)
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-black/[0.06] dark:bg-white/[0.1] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[var(--color-accent)] rounded-full transition-all duration-300"
+                style={{ width: `${tasksPercent}%` }}
+              />
+            </div>
+          </div>
+        )}
 
-      <div className="mt-auto pt-6 border-t border-slate-200/50 dark:border-slate-800/50">
-        {/* Memory Box (Trash) Toggle */}
+        {/* Memory Box / Trash */}
         <button
-          onClick={() => setShowTrash(!showTrash)}
-          className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-between border ${showTrash
-            ? 'bg-pink-100/50 dark:bg-pink-950/30 text-pink-600 dark:text-pink-300 shadow-sm border-pink-200/30 dark:border-pink-900/20'
-            : 'hover:bg-white/40 dark:hover:bg-slate-800/30 text-[var(--color-text)] opacity-80 hover:opacity-100 border-transparent'
-            }`}
+          onClick={() => selectView('trash')}
+          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+            showTrash
+              ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-bold'
+              : 'text-[var(--color-text)] opacity-70 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+          }`}
         >
           <div className="flex items-center gap-2">
-            <span>📦</span>
+            <Trash2 className="w-3.5 h-3.5 opacity-70" />
             <span>Memory Box</span>
           </div>
-          <span className="text-xs bg-slate-200/50 dark:bg-slate-800/80 px-2 py-0.5 rounded-full text-slate-500">
-            {deletedNotesCount}
-          </span>
+          {deletedNotesCount > 0 && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-200 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+              {deletedNotesCount}
+            </span>
+          )}
+        </button>
+
+        {/* Keyboard Shortcuts Hint */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('show-shortcuts'))}
+          className="w-full text-left px-3 py-1.5 rounded-lg text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] flex items-center justify-between cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
+        >
+          <div className="flex items-center gap-1.5">
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Shortcuts</span>
+          </div>
+          <kbd className="px-1.5 py-0.5 rounded bg-black/[0.05] dark:bg-white/[0.08] text-[10px] font-mono">
+            ⌘/
+          </kbd>
         </button>
       </div>
     </aside>

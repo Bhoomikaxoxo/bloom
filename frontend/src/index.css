@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=Fraunces:wght@500;700&family=Inter:wght@400;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@300;400;500;600;700&family=Kalam:wght@300;400;700&family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Quicksand:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,104 +6,148 @@
 
 @layer base {
   :root {
-    /* Default Cottagecore Theme Variables */
-    --frame-color: #A87C5D;
-    --frame-color-dark: #8C6647;
-    --paper-color: #FAF6ED;
-    --grid-color: #E8DFCF;
-    --ink-color: #3A322A;
-    --accent-color: #7C9070;
-    
+    /* Soft, warm stationery palette */
+    --paper-color: #FAF8F5;
+    --frame-color: #D4758A;
+    --frame-color-dark: #B8566C;
+    --accent-color: #D4758A;
+    --ink-color: #2D2D2D;
+    --grid-color: rgba(45, 45, 45, 0.05);
+
+    --color-bg-from: #FAF8F5;
+    --color-bg-via: #FDFBF7;
+    --color-bg-to: #F6F1EA;
+
+    --header-font: 'Playfair Display', 'Fraunces', Georgia, serif;
+    --body-font: 'Inter', 'Quicksand', -apple-system, sans-serif;
     --handwriting-font: 'Kalam', cursive;
-    --header-font: 'Fraunces', serif;
 
-    --color-note-1: #D9C9B0;
-    --color-note-2: #C7D6C0;
-    --color-note-3: #E8C9C1;
-    --color-note-4: #EFE3B8;
-    --color-note-5: #D8CFE8;
-    --color-note-6: #E6C5B3;
+    /* Soft Pastel Note Colors */
+    --color-note-1: #FCECEE; /* Blush */
+    --color-note-2: #F3ECFA; /* Lavender */
+    --color-note-3: #EAF3E6; /* Sage */
+    --color-note-4: #FEF6E4; /* Butter */
+    --color-note-5: #E8F1F5; /* Sky */
+    --color-note-6: #FDEEE4; /* Peach */
 
-    --color-note-text-1: #3A322A;
-    --color-note-text-2: #3E4E35;
-    --color-note-text-3: #6B3B39;
-    --color-note-text-4: #614B13;
-    --color-note-text-5: #5E4378;
-    --color-note-text-6: #633B27;
+    /* Readable warm dark note texts */
+    --color-note-text-1: #3D2229;
+    --color-note-text-2: #342443;
+    --color-note-text-3: #263622;
+    --color-note-text-4: #433318;
+    --color-note-text-5: #21323D;
+    --color-note-text-6: #422D22;
+
+    /* Subtle left accent borders for cards */
+    --color-note-border-1: #E8A8B6;
+    --color-note-border-2: #CEBAE8;
+    --color-note-border-3: #ADC9A4;
+    --color-note-border-4: #E8CA8A;
+    --color-note-border-5: #A8C9DC;
+    --color-note-border-6: #E8BA9E;
 
     /* Base mappings */
-    --color-text: var(--ink-color);
-    --color-text-muted: rgba(58, 50, 42, 0.6);
-    --color-card-bg: var(--paper-color);
-    --color-card-border: var(--grid-color);
-    --color-grid-dot: var(--grid-color);
-    --color-accent: var(--accent-color);
-    --color-accent-hover: var(--frame-color-dark);
-    --color-accent-text: #ffffff;
-    --color-accent-focus: rgba(124, 144, 112, 0.4);
-    
-    --color-sidebar-bg: rgba(243, 237, 222, 0.85);
-    --color-accent-bg: rgba(124, 144, 112, 0.15);
-    --color-accent-border: rgba(124, 144, 112, 0.3);
+    --color-text: #2D2D2D;
+    --color-text-muted: #7A7570;
+    --color-card-bg: #FFFFFF;
+    --color-card-border: rgba(0, 0, 0, 0.06);
+    --color-grid-dot: rgba(45, 45, 45, 0.06);
+    --color-accent: #D4758A;
+    --color-accent-hover: #B8566C;
+    --color-accent-text: #B8566C;
+    --color-accent-focus: rgba(212, 117, 138, 0.25);
+
+    --color-sidebar-bg: rgba(255, 253, 250, 0.92);
+    --color-accent-bg: rgba(212, 117, 138, 0.08);
+    --color-accent-border: rgba(212, 117, 138, 0.2);
   }
 
   body {
     background-color: var(--paper-color);
-    color: var(--ink-color);
-    font-family: var(--header-font), 'Quicksand', sans-serif;
+    color: var(--color-text);
+    font-family: var(--body-font);
     min-height: 100vh;
     transition: background-color 300ms ease, color 300ms ease;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--header-font), sans-serif;
-    font-weight: 800;
+    font-family: var(--header-font);
+    color: var(--color-text);
+    letter-spacing: -0.01em;
   }
 }
 
 @layer components {
+  /* Subtle stationary dot grid */
   .bg-notebook-grid {
-    background-size: 24px 24px;
-    background-image: radial-gradient(var(--color-grid-dot) 1.5px, transparent 1.5px);
+    background-size: 22px 22px;
+    background-image: radial-gradient(var(--color-grid-dot) 1.1px, transparent 1.1px);
     background-color: transparent;
     transition: background-color 300ms ease, background-image 300ms ease;
   }
 
-  .cutesy-btn {
-    @apply px-4 py-2 rounded-2xl font-display font-bold transition-all duration-200 active:scale-95 shadow-sm flex items-center gap-2;
-    background-color: var(--color-accent-bg);
-    color: var(--ink-color);
-    border: 2px solid var(--color-accent-border);
+  /* Refined stationery card utility */
+  .bloom-card {
+    background-color: #FFFFFF;
+    border-radius: 1rem;
+    border: 1px solid var(--color-card-border);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+    transition: all 200ms ease-in-out;
   }
-  .cutesy-btn:hover {
-    background-color: var(--color-accent);
-    color: white;
-  }
-  .cutesy-btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 4px var(--color-accent-focus);
+  .bloom-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   }
 
-  .cutesy-input {
-    @apply px-4 py-2 rounded-2xl border bg-white/70 backdrop-blur-md outline-none transition-all duration-200;
-    color: var(--ink-color);
-    border-color: var(--color-card-border);
-    background-color: rgba(255, 255, 255, 0.6);
+  /* Refined button styling */
+  .bloom-btn {
+    @apply px-3.5 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all duration-200 active:scale-95 flex items-center gap-1.5 cursor-pointer select-none;
+    background-color: var(--color-accent-bg);
+    color: var(--color-accent-text);
+    border: 1px solid var(--color-accent-border);
   }
-  .cutesy-input:focus {
+  .bloom-btn:hover {
+    background-color: var(--color-accent);
+    color: #FFFFFF;
     border-color: var(--color-accent);
-    box-shadow: 0 0 0 4px var(--color-accent-focus);
   }
-  
-  .dark .cutesy-input {
-    @apply bg-slate-800/70 border-slate-700 text-slate-100;
+  .bloom-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-accent-focus);
+  }
+
+  /* Backward compatible alias */
+  .cutesy-btn {
+    @apply bloom-btn;
+  }
+
+  /* Refined input styling */
+  .bloom-input {
+    @apply px-3.5 py-1.5 rounded-full border bg-white/90 backdrop-blur-sm outline-none transition-all duration-200 text-sm;
+    color: var(--color-text);
+    border-color: var(--color-card-border);
+  }
+  .bloom-input:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-focus);
+    background-color: #FFFFFF;
+  }
+  .bloom-input::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.65;
+  }
+
+  /* Backward compatible alias */
+  .cutesy-input {
+    @apply bloom-input;
   }
 }
 
-/* Custom scrollbars for notes */
+/* Custom smooth scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -119,15 +163,40 @@
   background: rgba(0, 0, 0, 0.2);
 }
 
-/* Theme transitioning helper */
-.theme-transition {
-  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease, fill 300ms ease, stroke 300ms ease;
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* CSS confetti/sparkle animations */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @keyframes sparkle {
   0% { transform: scale(0) rotate(0deg); opacity: 0; }
-  50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+  50% { transform: scale(1.15) rotate(180deg); opacity: 1; }
   100% { transform: scale(0) rotate(360deg); opacity: 0; }
 }
 
@@ -135,29 +204,18 @@
   animation: sparkle 0.5s ease-out forwards;
 }
 
+.theme-transition {
+  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease, fill 300ms ease, stroke 300ms ease;
+}
+
 @layer utilities {
-  .hand-drawn-border {
-    border: 3px solid var(--ink-color);
-    border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
-    transition: border-color 300ms ease, border-radius 300ms ease;
-  }
-  .hand-drawn-border-thin {
-    border: 2px solid var(--ink-color);
-    border-radius: 225px 15px 255px 15px/15px 255px 15px 225px;
-    transition: border-color 300ms ease, border-radius 300ms ease;
-  }
-  .bg-journal-grid {
-    background-color: var(--paper-color);
-    background-image:
-      linear-gradient(to right, var(--grid-color) 1.5px, transparent 1.5px),
-      linear-gradient(to bottom, var(--grid-color) 1.5px, transparent 1.5px);
-    background-size: 24px 24px;
-    transition: background-color 300ms ease, background-image 300ms ease;
-  }
   .font-handwritten {
     font-family: var(--handwriting-font), cursive;
   }
+  .font-serif-header {
+    font-family: var(--header-font), serif;
+  }
   .font-sans-rounded {
-    font-family: var(--header-font), sans-serif;
+    font-family: var(--body-font), sans-serif;
   }
 }
