@@ -8,9 +8,9 @@ const useSlateStore = create(
       notes: [
         {
           id: 'welcome-note',
-          title: 'Welcome to Slate! 📝✨',
+          title: 'Welcome to Bloom! 🌸✨',
           type: 'text',
-          content: 'Slate is a cozy space for all your notes and checklists! \n\nHere are some things you can try:\n🌸 Click the pin icon to stick this note to the top with a cute badge.\n🌸 Switch between "Grid" and "Board" views at the bottom of the sidebar to drag cards around freely!\n🌸 Choose from 3 pastel themes in the sidebar.\n🌸 Drag notes into folders or organize them with tags.',
+          content: 'Bloom is an aesthetic, serene space for your thoughts, daily journal, and ideas.\n\n✨ Pin or star notes to keep favorites close\n✨ Switch between Grid view and freeform Canvas Board\n✨ Explore dedicated color themes for each folder\n✨ Write in your personal Journal with bold, italic, lists, and cursive handwriting',
           colorIndex: 1, // Lavender
           isPinned: true,
           isFavorite: false,
@@ -67,8 +67,12 @@ const useSlateStore = create(
       confettiTrigger: null,
       journalViewMode: 'notes',
       journals: {},
-      activeAestheticTheme: 'toffee',
-      folderThemes: {},
+      activeAestheticTheme: 'caramel',
+      folderThemes: {
+        'folder-work': 'matcha',
+        'folder-personal': 'rose',
+        'folder-ideas': 'lavender',
+      },
       sortMode: 'newest', // 'newest' | 'oldest' | 'az' | 'color'
       openNoteId: null, // ID of note open in full editor
 
@@ -266,17 +270,22 @@ const useSlateStore = create(
       })),
 
       // --- FOLDERS CRUD ---
-      addFolder: (name) => {
+      addFolder: (name, themeId = 'rose') => {
         const id = 'folder-' + Math.random().toString(36).substr(2, 9);
         const icons = ['📁', '💖', '💼', '💡', '🌟', '🍀', '🍓', '🎒'];
         const randomIcon = icons[Math.floor(Math.random() * icons.length)];
         const newFolder = { id, name, icon: randomIcon };
 
         set((state) => ({
-          folders: [...state.folders, newFolder]
+          folders: [...state.folders, newFolder],
+          folderThemes: { ...state.folderThemes, [id]: themeId },
         }));
         return id;
       },
+
+      setFolderTheme: (folderId, themeId) => set((state) => ({
+        folderThemes: { ...state.folderThemes, [folderId]: themeId },
+      })),
 
       deleteFolder: (folderId) => set((state) => ({
         folders: state.folders.filter((f) => f.id !== folderId),
@@ -350,6 +359,13 @@ const useSlateStore = create(
             state.activeAestheticTheme = 'matcha';
           } else if (state.activeAestheticTheme === 'lilacMist') {
             state.activeAestheticTheme = 'lavender';
+          }
+          if (!state.folderThemes || Object.keys(state.folderThemes).length === 0) {
+            state.folderThemes = {
+              'folder-work': 'matcha',
+              'folder-personal': 'rose',
+              'folder-ideas': 'lavender',
+            };
           }
           if (Array.isArray(state.notes)) {
             state.notes.forEach((n) => {

@@ -7,9 +7,9 @@ import JournalPanel from './JournalPanel';
 import ThemeSwitcher from './ThemeSwitcher';
 import {
   Search, Plus, Sparkles, BookOpen, Columns, FileText,
-  ArrowDownUp, Clock, ArrowUpAZ, Palette, LayoutGrid, Move, CheckSquare
+  ArrowDownUp, Clock, ArrowUpAZ, Palette, LayoutGrid, Layers, CheckSquare
 } from 'lucide-react';
-import { CloudDoodle, StarDoodle } from '../ui/Doodles';
+import { CloudDoodle, StarDoodle, MemoryBoxDoodle, EmptyNotesDoodle } from '../ui/Doodles';
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest', icon: Clock },
@@ -225,9 +225,9 @@ const MainCanvas = () => {
                   ? 'bg-white dark:bg-slate-700 text-[var(--color-accent)] shadow-2xs'
                   : 'text-slate-400 hover:text-slate-600'
               }`}
-              title="Spatial Board (B)"
+              title="Canvas Board (B)"
             >
-              <Move className="w-3.5 h-3.5" />
+              <Layers className="w-3.5 h-3.5" />
             </button>
           </div>
 
@@ -313,9 +313,14 @@ const MainCanvas = () => {
               {/* Empty state */}
               {filteredNotes.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
-                  <div className="relative mb-4">
-                    <CloudDoodle className="w-20 h-14 text-slate-300 dark:text-slate-700" />
-                    <StarDoodle className="absolute -top-2 -right-2 w-5 h-5 text-amber-300 animate-spin" style={{ animationDuration: '9s' }} />
+                  <div className="relative mb-5 flex items-center justify-center">
+                    {showTrash ? (
+                      <MemoryBoxDoodle className="w-24 h-24" />
+                    ) : searchQuery.trim() ? (
+                      <CloudDoodle className="w-20 h-14" />
+                    ) : (
+                      <EmptyNotesDoodle className="w-24 h-24" />
+                    )}
                   </div>
                   <h3 className="text-base font-bold text-[var(--color-text)] mb-1.5">
                     {showTrash ? 'Memory Box is empty 🌸' : searchQuery.trim() ? 'No matches found' : 'No notes here yet'}

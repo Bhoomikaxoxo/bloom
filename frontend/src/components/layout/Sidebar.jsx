@@ -1,7 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import useSlateStore from '../../store/useSlateStore';
-import { Plus, X, Star, FileText, Folder as FolderIcon, Tag as TagIcon, Trash2, LayoutGrid, Move, HelpCircle, CheckSquare } from 'lucide-react';
+import { THEMES } from '../../utils/theme-config';
+import BloomLogo from '../ui/BloomLogo';
 import EmojiPickerPopover from '../ui/EmojiPickerPopover';
+import { Plus, X, Star, FileText, Trash2, HelpCircle, CheckSquare, Palette } from 'lucide-react';
+
+const TAG_COLOR_MAP = {
+  pink: {
+    badge: 'bg-rose-100/90 text-rose-800 border-rose-200/80 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60',
+    dot: '#F43F5E',
+  },
+  lavender: {
+    badge: 'bg-purple-100/90 text-purple-800 border-purple-200/80 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/60',
+    dot: '#A855F7',
+  },
+  mint: {
+    badge: 'bg-emerald-100/90 text-emerald-800 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60',
+    dot: '#10B981',
+  },
+  sage: {
+    badge: 'bg-emerald-100/90 text-emerald-800 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60',
+    dot: '#10B981',
+  },
+  amber: {
+    badge: 'bg-amber-100/90 text-amber-800 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60',
+    dot: '#F59E0B',
+  },
+  sky: {
+    badge: 'bg-sky-100/90 text-sky-800 border-sky-200/80 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800/60',
+    dot: '#0EA5E9',
+  },
+};
 
 const Sidebar = ({ onCloseMobile }) => {
   const {
@@ -9,28 +38,42 @@ const Sidebar = ({ onCloseMobile }) => {
     tags,
     activeFolderId,
     activeTagId,
-    viewMode,
     showTrash,
     showFavorites,
+    folderThemes,
     setActiveFolderId,
     setActiveTagId,
-    setViewMode,
     setShowTrash,
     setShowFavorites,
     addFolder,
     deleteFolder,
     updateFolder,
+    setFolderTheme,
     addTag,
     deleteTag,
     notes,
   } = useSlateStore();
 
   const [newFolderName, setNewFolderName] = useState('');
+  const [newFolderTheme, setNewFolderTheme] = useState('matcha');
   const [showAddFolder, setShowAddFolder] = useState(false);
 
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('lavender');
   const [showAddTag, setShowAddTag] = useState(false);
+
+  const [themeMenuFolderId, setThemeMenuFolderId] = useState(null);
+  const themeMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (themeMenuRef.current && !themeMenuRef.current.contains(e.target)) {
+        setThemeMenuFolderId(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const activeNotesCount = notes.filter((n) => n.deletedAt === null).length;
   const favoritesCount = notes.filter((n) => n.isFavorite && n.deletedAt === null).length;
@@ -46,7 +89,7 @@ const Sidebar = ({ onCloseMobile }) => {
   const handleAddFolder = (e) => {
     e.preventDefault();
     if (newFolderName.trim()) {
-      addFolder(newFolderName.trim());
+      addFolder(newFolderName.trim(), newFolderTheme);
       setNewFolderName('');
       setShowAddFolder(false);
     }
@@ -80,22 +123,10 @@ const Sidebar = ({ onCloseMobile }) => {
   };
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-[var(--color-sidebar-bg)] border-r border-black/[0.07] dark:border-white/[0.08] p-4 flex flex-col h-screen overflow-y-auto select-none transition-colors">
+    <aside className="w-64 flex-shrink-0 bg-[var(--color-sidebar-bg)] border-r border-black/[0.08] dark:border-white/[0.08] p-4 flex flex-col h-screen overflow-y-auto select-none transition-colors">
       {/* Brand Header */}
-      <div className="px-2 pt-1 pb-4 mb-3 border-b border-black/[0.06] dark:border-white/[0.08] flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[var(--color-accent)] text-white flex items-center justify-center font-bold text-base shadow-xs">
-            🌸
-          </div>
-          <div>
-            <h1 className="text-base font-bold tracking-tight text-[var(--color-text)] leading-none">
-              Bloom
-            </h1>
-            <p className="text-[10px] text-[var(--color-text-muted)] font-semibold tracking-wider uppercase mt-1">
-              Notes & Workspace
-            </p>
-          </div>
-        </div>
+      <div className="px-1 pt-1 pb-4 mb-3 border-b border-black/[0.08] dark:border-white/[0.08] flex items-center justify-between">
+        <BloomLogo />
       </div>
 
       {/* Main Views (All Notes, Favorites) */}
@@ -112,7 +143,7 @@ const Sidebar = ({ onCloseMobile }) => {
             <FileText className="w-4 h-4 opacity-70" />
             <span>All Notes</span>
           </div>
-          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.05] dark:bg-white/[0.08] opacity-75">
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] opacity-75">
             {activeNotesCount}
           </span>
         </button>
@@ -129,17 +160,17 @@ const Sidebar = ({ onCloseMobile }) => {
             <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
             <span>Favorites</span>
           </div>
-          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.05] dark:bg-white/[0.08] opacity-75">
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] opacity-75">
             {favoritesCount}
           </span>
         </button>
       </div>
 
-      {/* Folders Section */}
+      {/* Folders Section with Theme World Assignment */}
       <div className="mb-5">
         <div className="flex items-center justify-between px-2 mb-1.5">
           <span className="text-[11px] font-bold text-[var(--color-text-muted)] tracking-wider uppercase">
-            Folders
+            Folders & Worlds
           </span>
           <button
             onClick={() => setShowAddFolder(!showAddFolder)}
@@ -150,43 +181,65 @@ const Sidebar = ({ onCloseMobile }) => {
           </button>
         </div>
 
+        {/* Add Folder Form */}
         {showAddFolder && (
-          <form onSubmit={handleAddFolder} className="mb-2 px-1">
-            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-2xs">
-              <input
-                type="text"
-                placeholder="Folder name…"
-                value={newFolderName}
-                onChange={(e) => setNewFolderName(e.target.value)}
-                autoFocus
-                className="w-full text-xs bg-transparent outline-none px-1 text-[var(--color-text)]"
-              />
-              <button
-                type="submit"
-                className="px-2 py-1 bg-[var(--color-accent)] text-white text-[11px] font-bold rounded-md hover:opacity-90"
-              >
-                Add
-              </button>
+          <form onSubmit={handleAddFolder} className="mb-2.5 p-2 bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 rounded-xl shadow-xs space-y-2">
+            <input
+              type="text"
+              placeholder="Folder name…"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              autoFocus
+              className="w-full text-xs bg-transparent outline-none px-1 text-[var(--color-text)] placeholder:text-slate-400"
+            />
+            <div className="flex items-center justify-between pt-1 border-t border-black/5 dark:border-white/5">
+              <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Theme:</span>
+              <div className="flex items-center gap-1.5">
+                {THEMES.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setNewFolderTheme(t.id)}
+                    className={`w-4 h-4 rounded-full transition-transform cursor-pointer ${
+                      newFolderTheme === t.id ? 'scale-125 ring-2 ring-black/30 dark:ring-white/50' : 'opacity-70 hover:opacity-100'
+                    }`}
+                    style={{ backgroundColor: t.accentColor }}
+                    title={t.name}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="flex justify-end gap-1.5 pt-1">
               <button
                 type="button"
                 onClick={() => setShowAddFolder(false)}
-                className="p-1 text-slate-400 hover:text-slate-600"
+                className="px-2 py-1 text-[11px] text-slate-500 hover:text-slate-700"
               >
-                <X className="w-3 h-3" />
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!newFolderName.trim()}
+                className="px-2.5 py-1 bg-[var(--color-accent)] text-white text-[11px] font-bold rounded-lg hover:opacity-90 disabled:opacity-40"
+              >
+                Add Folder
               </button>
             </div>
           </form>
         )}
 
+        {/* Folder List */}
         <div className="space-y-0.5">
           {folders.map((folder) => {
             const count = notes.filter((n) => n.folderId === folder.id && n.deletedAt === null).length;
             const isSelected = activeFolderId === folder.id && !showTrash && !showFavorites;
+            const assignedThemeId = folderThemes?.[folder.id] || 'caramel';
+            const assignedTheme = THEMES.find((t) => t.id === assignedThemeId) || THEMES[0];
 
             return (
               <div
                 key={folder.id}
-                className={`group flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                className={`group relative flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
                     : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
@@ -200,10 +253,51 @@ const Sidebar = ({ onCloseMobile }) => {
                   />
                   <span className="truncate">{folder.name}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-[11px] opacity-60 px-1.5 py-0.2 rounded-full">
+
+                <div className="flex items-center gap-1.5">
+                  {/* Theme swatch dot */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setThemeMenuFolderId(themeMenuFolderId === folder.id ? null : folder.id);
+                      }}
+                      className="w-3 h-3 rounded-full border border-black/15 dark:border-white/20 transition-transform hover:scale-125 cursor-pointer"
+                      style={{ backgroundColor: assignedTheme.accentColor }}
+                      title={`Folder Theme: ${assignedTheme.name} (Click to change)`}
+                    />
+
+                    {/* Folder Theme Switcher Popover */}
+                    {themeMenuFolderId === folder.id && (
+                      <div
+                        ref={themeMenuRef}
+                        className="absolute right-0 top-full mt-1.5 p-2 bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 rounded-xl shadow-lg z-50 flex items-center gap-1.5 animate-scale-in"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {THEMES.map((t) => (
+                          <button
+                            key={t.id}
+                            type="button"
+                            onClick={() => {
+                              setFolderTheme(folder.id, t.id);
+                              setThemeMenuFolderId(null);
+                            }}
+                            className={`w-4 h-4 rounded-full transition-transform hover:scale-125 cursor-pointer ${
+                              assignedThemeId === t.id ? 'scale-125 ring-2 ring-black/40 dark:ring-white/60' : 'opacity-70 hover:opacity-100'
+                            }`}
+                            style={{ backgroundColor: t.accentColor }}
+                            title={t.name}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <span className="text-[11px] opacity-60 px-1 py-0.5 rounded-full">
                     {count}
                   </span>
+
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -211,7 +305,7 @@ const Sidebar = ({ onCloseMobile }) => {
                         deleteFolder(folder.id);
                       }
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 rounded transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-red-500 rounded transition-opacity"
                     title="Delete folder"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -223,7 +317,7 @@ const Sidebar = ({ onCloseMobile }) => {
         </div>
       </div>
 
-      {/* Tags Section */}
+      {/* Colorful Tags Section */}
       <div className="mb-5">
         <div className="flex items-center justify-between px-2 mb-1.5">
           <span className="text-[11px] font-bold text-[var(--color-text-muted)] tracking-wider uppercase">
@@ -238,51 +332,79 @@ const Sidebar = ({ onCloseMobile }) => {
           </button>
         </div>
 
+        {/* Add Tag Form with Color Picker */}
         {showAddTag && (
-          <form onSubmit={handleAddTag} className="mb-2 px-1">
-            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 rounded-lg p-1.5 shadow-2xs">
-              <input
-                type="text"
-                placeholder="Tag name…"
-                value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
-                autoFocus
-                className="w-full text-xs bg-transparent outline-none px-1 text-[var(--color-text)]"
-              />
-              <button
-                type="submit"
-                className="px-2 py-1 bg-[var(--color-accent)] text-white text-[11px] font-bold rounded-md hover:opacity-90"
-              >
-                Add
-              </button>
+          <form onSubmit={handleAddTag} className="mb-2.5 p-2 bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 rounded-xl shadow-xs space-y-2">
+            <input
+              type="text"
+              placeholder="Tag name…"
+              value={newTagName}
+              onChange={(e) => setNewTagName(e.target.value)}
+              autoFocus
+              className="w-full text-xs bg-transparent outline-none px-1 text-[var(--color-text)] placeholder:text-slate-400"
+            />
+            <div className="flex items-center justify-between pt-1 border-t border-black/5 dark:border-white/5">
+              <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Color:</span>
+              <div className="flex items-center gap-1.5">
+                {['pink', 'lavender', 'mint', 'amber', 'sky'].map((colorName) => {
+                  const item = TAG_COLOR_MAP[colorName];
+                  return (
+                    <button
+                      key={colorName}
+                      type="button"
+                      onClick={() => setNewTagColor(colorName)}
+                      className={`w-3.5 h-3.5 rounded-full transition-transform cursor-pointer ${
+                        newTagColor === colorName ? 'scale-125 ring-2 ring-black/30 dark:ring-white/50' : 'opacity-70 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: item.dot }}
+                      title={colorName}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+            <div className="flex justify-end gap-1.5 pt-1">
               <button
                 type="button"
                 onClick={() => setShowAddTag(false)}
-                className="p-1 text-slate-400 hover:text-slate-600"
+                className="px-2 py-1 text-[11px] text-slate-500 hover:text-slate-700"
               >
-                <X className="w-3 h-3" />
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={!newTagName.trim()}
+                className="px-2.5 py-1 bg-[var(--color-accent)] text-white text-[11px] font-bold rounded-lg hover:opacity-90 disabled:opacity-40"
+              >
+                Add Tag
               </button>
             </div>
           </form>
         )}
 
+        {/* Colorful Tag Badges */}
         <div className="flex flex-wrap gap-1.5 px-1">
           {tags.map((tag) => {
             const count = notes.filter((n) => n.tags?.includes(tag.id) && n.deletedAt === null).length;
             const isSelected = activeTagId === tag.id && !showTrash && !showFavorites;
+            const styleConfig = TAG_COLOR_MAP[tag.color] || TAG_COLOR_MAP.lavender;
 
             return (
               <button
                 key={tag.id}
                 onClick={() => selectView('tag', tag.id)}
-                className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[var(--color-accent)] text-white shadow-xs'
-                    : 'bg-black/[0.04] dark:bg-white/[0.06] text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.08]'
+                    ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)] shadow-xs'
+                    : styleConfig.badge
                 }`}
               >
+                <span
+                  className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: isSelected ? '#FFFFFF' : styleConfig.dot }}
+                />
                 <span>#{tag.name}</span>
-                <span className={`text-[10px] px-1 rounded-full ${isSelected ? 'bg-white/20' : 'bg-black/10 dark:bg-white/10'}`}>
+                <span className={`text-[10px] px-1 rounded-full ${isSelected ? 'bg-white/20' : 'bg-black/5 dark:bg-white/10'}`}>
                   {count}
                 </span>
                 <span
@@ -290,7 +412,7 @@ const Sidebar = ({ onCloseMobile }) => {
                     e.stopPropagation();
                     deleteTag(tag.id);
                   }}
-                  className="opacity-0 group-hover:opacity-100 text-xs hover:text-red-400 ml-0.5"
+                  className="opacity-0 group-hover:opacity-100 text-xs hover:text-red-500 ml-0.5"
                   title="Delete tag"
                 >
                   ×
@@ -305,10 +427,10 @@ const Sidebar = ({ onCloseMobile }) => {
       <div className="flex-1" />
 
       {/* Bottom Progress & Memory Box */}
-      <div className="pt-3 border-t border-black/[0.06] dark:border-white/[0.08] space-y-3">
+      <div className="pt-3 border-t border-black/[0.08] dark:border-white/[0.08] space-y-3">
         {/* Daily Tasks Progress */}
         {totalTasksCount > 0 && (
-          <div className="p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.04] dark:border-white/[0.06]">
+          <div className="p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.06]">
             <div className="flex justify-between items-center text-xs font-semibold mb-1.5">
               <div className="flex items-center gap-1.5 text-[var(--color-text)]">
                 <CheckSquare className="w-3.5 h-3.5 text-[var(--color-accent)]" />
@@ -356,7 +478,7 @@ const Sidebar = ({ onCloseMobile }) => {
             <HelpCircle className="w-3.5 h-3.5" />
             <span>Shortcuts</span>
           </div>
-          <kbd className="px-1.5 py-0.5 rounded bg-black/[0.05] dark:bg-white/[0.08] text-[10px] font-mono">
+          <kbd className="px-1.5 py-0.5 rounded bg-black/[0.06] dark:bg-white/[0.08] text-[10px] font-mono">
             ⌘/
           </kbd>
         </button>
