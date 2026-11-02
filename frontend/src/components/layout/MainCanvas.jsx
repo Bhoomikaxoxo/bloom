@@ -151,7 +151,7 @@ const MainCanvas = () => {
   return (
     <main className="flex-1 flex flex-col h-screen overflow-hidden transition-colors">
       {/* Unified Top Navigation & Controls Bar */}
-      <header className="h-16 px-6 border-b border-black/[0.06] dark:border-white/[0.08] bg-[var(--color-card-bg)]/85 backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
+      <header className="h-16 px-6 border-b border-black/[0.08] dark:border-white/[0.08] bg-[var(--color-sidebar-bg)] backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
         {/* Left: View Title & Note Count */}
         <div className="flex items-center gap-3 min-w-0">
           <span className="text-xl">{currentViewIcon}</span>
