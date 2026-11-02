@@ -220,8 +220,8 @@ const NoteEditor = ({ note, onClose }) => {
               title={note.isFavorite ? 'Unfavorite' : 'Favorite'}
               className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                 note.isFavorite
-                  ? 'text-amber-500 bg-amber-50'
-                  : 'text-[var(--color-text-muted)] hover:bg-black/[0.05] hover:text-[var(--color-text)]'
+                  ? 'text-amber-500 fill-amber-500 bg-amber-50 dark:bg-amber-950/40'
+                  : 'text-[var(--color-text-muted)] hover:bg-black/[0.05] hover:text-amber-500'
               }`}
             >
               <Star className={`w-4 h-4 ${note.isFavorite ? 'fill-current' : ''}`} />

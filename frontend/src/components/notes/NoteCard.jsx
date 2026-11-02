@@ -92,8 +92,10 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
   };
 
   const handleDragEnd = (event, info) => {
-    const newX = (note.boardPosition?.x || 50) + info.offset.x;
-    const newY = (note.boardPosition?.y || 80) + info.offset.y;
+    const currentX = note.boardPosition?.x ?? 50;
+    const currentY = note.boardPosition?.y ?? 80;
+    const newX = Math.max(10, Math.round(currentX + info.offset.x));
+    const newY = Math.max(10, Math.round(currentY + info.offset.y));
     updateNotePosition(note.id, newX, newY);
   };
 
@@ -103,19 +105,25 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
     ? {
         drag: true,
         dragMomentum: false,
-        dragConstraints: dragConstraints,
+        dragElastic: 0,
+        dragConstraints: dragConstraints || { left: 10, top: 10, right: 2000, bottom: 1200 },
         onDragEnd: handleDragEnd,
+        animate: { x: 0, y: 0, opacity: 1 },
+        transition: { duration: 0 },
         style: {
           position: 'absolute',
-          left: 0,
-          top: 0,
-          x: note.boardPosition?.x || 50,
-          y: note.boardPosition?.y || 80,
+          left: `${note.boardPosition?.x || 50}px`,
+          top: `${note.boardPosition?.y || 80}px`,
           width: '320px',
           ...cardColorStyle,
         },
       }
     : {
+        layout: true,
+        initial: { opacity: 0, y: 8 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, scale: 0.95 },
+        transition: { type: 'spring', stiffness: 350, damping: 25 },
         style: cardColorStyle,
       };
 
@@ -123,13 +131,8 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
     <motion.div
       ref={cardRef}
       {...motionProps}
-      layout={!isDraggable}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-      whileHover={showTrash ? {} : { y: -2 }}
-      className={`group relative p-5 rounded-2xl border border-[var(--color-card-border)] flex flex-col shadow-xs hover:shadow-md transition-all duration-200 ${
+      whileHover={showTrash ? {} : isDraggable ? {} : { y: -2 }}
+      className={`group relative p-5 rounded-2xl border border-[var(--color-card-border)] flex flex-col shadow-[0_4px_20px_-2px_rgba(0,0,0,0.08),0_2px_6px_-1px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_25px_-2px_rgba(0,0,0,0.5)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.12)] transition-shadow duration-200 ${
         isDraggable ? 'cursor-grab active:cursor-grabbing z-20' : 'cursor-pointer'
       } ${showTrash ? 'opacity-70 grayscale-[25%]' : ''}`}
       onClick={(e) => {
@@ -207,6 +210,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
         <div className="flex items-center gap-0.5">
           {!showTrash ? (
             <>
+              {/* Star Favorite Button - Always Visible */}
               <button
                 type="button"
                 onClick={(e) => {
@@ -215,14 +219,15 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
                 }}
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                   note.isFavorite
-                    ? 'text-amber-500 fill-amber-500'
-                    : 'text-slate-400 hover:text-amber-500 opacity-0 group-hover:opacity-100'
+                    ? 'text-amber-500 fill-amber-500 opacity-100 hover:scale-110'
+                    : 'text-slate-400 dark:text-slate-500 hover:text-amber-500 opacity-70 hover:opacity-100 hover:scale-110'
                 }`}
                 title={note.isFavorite ? 'Unfavorite' : 'Favorite'}
               >
-                <Star className={`w-3.5 h-3.5 ${note.isFavorite ? 'fill-current' : ''}`} />
+                <Star className={`w-4 h-4 ${note.isFavorite ? 'fill-current' : ''}`} />
               </button>
 
+              {/* Pin Button - Always Visible */}
               <button
                 type="button"
                 onClick={(e) => {
@@ -231,33 +236,35 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
                 }}
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                   note.isPinned
-                    ? 'text-[var(--color-accent)] fill-current'
-                    : 'text-slate-400 hover:text-[var(--color-accent)] opacity-0 group-hover:opacity-100'
+                    ? 'text-[var(--color-accent)] fill-current opacity-100 hover:scale-110'
+                    : 'text-slate-400 dark:text-slate-500 hover:text-[var(--color-accent)] opacity-70 hover:opacity-100 hover:scale-110'
                 }`}
                 title={note.isPinned ? 'Unpin note' : 'Pin note'}
               >
-                <Pin className={`w-3.5 h-3.5 ${note.isPinned ? 'fill-current' : ''}`} />
+                <Pin className={`w-4 h-4 ${note.isPinned ? 'fill-current' : ''}`} />
               </button>
 
+              {/* Duplicate Button */}
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   duplicateNote(note.id);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 opacity-0 group-hover:opacity-75 hover:!opacity-100 transition-opacity cursor-pointer"
                 title="Duplicate note"
               >
                 <Copy className="w-3.5 h-3.5" />
               </button>
 
+              {/* Delete Button */}
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   deleteNote(note.id);
                 }}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-75 hover:!opacity-100 transition-opacity cursor-pointer"
                 title="Delete note"
               >
                 <Trash2 className="w-3.5 h-3.5" />
