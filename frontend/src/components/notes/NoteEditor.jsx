@@ -75,6 +75,10 @@ const NoteEditor = ({ note, onClose }) => {
   const noteFolder = folders.find((f) => f.id === note.folderId);
   const wc = wordCount(note.richText || note.content || '');
 
+  const noteFont = note.fontStyle === 'serif'
+    ? "'Fraunces', Georgia, serif"
+    : "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+
   // TipTap editor (text notes only)
   const editor = useEditor({
     extensions: [
@@ -89,7 +93,7 @@ const NoteEditor = ({ note, onClose }) => {
     editorProps: {
       attributes: {
         class: 'outline-none min-h-[200px] prose prose-sm max-w-none focus:outline-none',
-        style: 'font-family: var(--handwriting-font); color: var(--color-text); font-size: 15px; line-height: 1.8;',
+        style: 'color: var(--color-text); font-size: 15px; line-height: 1.8;',
       },
     },
     onUpdate: ({ editor }) => {
@@ -295,6 +299,34 @@ const NoteEditor = ({ note, onClose }) => {
 
             <div className="flex-1" />
 
+            {/* Font family style switcher */}
+            <div className="flex items-center gap-0.5 bg-black/[0.04] dark:bg-white/[0.06] p-0.5 rounded-lg mr-2">
+              <button
+                type="button"
+                onClick={() => updateNote(note.id, { fontStyle: 'sans' })}
+                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all cursor-pointer ${
+                  (!note.fontStyle || note.fontStyle === 'sans')
+                    ? 'bg-white dark:bg-slate-700 text-[var(--color-accent)] shadow-2xs font-semibold'
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}
+                title="Modern Sans"
+              >
+                Sans
+              </button>
+              <button
+                type="button"
+                onClick={() => updateNote(note.id, { fontStyle: 'serif' })}
+                className={`px-2 py-0.5 rounded text-[11px] font-serif transition-all cursor-pointer ${
+                  note.fontStyle === 'serif'
+                    ? 'bg-white dark:bg-slate-700 text-[var(--color-accent)] shadow-2xs font-semibold'
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}
+                title="Classic Serif"
+              >
+                Serif
+              </button>
+            </div>
+
             {/* Color picker inline */}
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5, 6].map((idx) => (
@@ -353,7 +385,7 @@ const NoteEditor = ({ note, onClose }) => {
         )}
 
         {/* Main content area */}
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-6 py-5 select-text" style={{ fontFamily: noteFont }}>
           {note.type === 'text' && editor && (
             <EditorContent editor={editor} className="min-h-[200px]" />
           )}

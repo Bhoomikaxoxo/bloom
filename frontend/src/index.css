@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@300;400;500;600;700&family=Kalam:wght@300;400;700&family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Quicksand:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..700&family=Plus+Jakarta+Sans:ital,wght@0,300..700;1,300..700&family=Playfair+Display:ital,wght@0,400..800;1,400..800&family=Quicksand:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -19,8 +19,9 @@
     --color-bg-to: #F6F1EA;
 
     --header-font: 'Playfair Display', 'Fraunces', Georgia, serif;
-    --body-font: 'Inter', 'Quicksand', -apple-system, sans-serif;
-    --handwriting-font: 'Kalam', cursive;
+    --body-font: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --note-font: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --handwriting-font: 'Quicksand', 'Plus Jakarta Sans', sans-serif;
 
     /* Soft Pastel Note Colors */
     --color-note-1: #FCECEE; /* Blush */
@@ -148,6 +149,34 @@
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
+}
+
+/* TipTap ProseMirror Editor Typography */
+.ProseMirror {
+  font-family: var(--note-font, 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
+  font-style: normal;
+  outline: none;
+}
+
+.ProseMirror p {
+  margin-bottom: 0.65rem;
+  line-height: 1.75;
+}
+
+.ProseMirror em,
+.ProseMirror i {
+  font-style: italic !important;
+  letter-spacing: 0.01em;
+}
+
+.ProseMirror strong,
+.ProseMirror b {
+  font-weight: 700 !important;
+}
+
+.ProseMirror u {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 ::-webkit-scrollbar-track {
