@@ -3,7 +3,7 @@ import useSlateStore from '../../store/useSlateStore';
 import { THEMES } from '../../utils/theme-config';
 import BloomLogo from '../ui/BloomLogo';
 import EmojiPickerPopover from '../ui/EmojiPickerPopover';
-import { Plus, X, Star, FileText, Trash2, HelpCircle, CheckSquare, Palette } from 'lucide-react';
+import { Plus, Star, FileText, Trash2, HelpCircle, CheckSquare } from 'lucide-react';
 
 const TAG_COLOR_MAP = {
   pink: {

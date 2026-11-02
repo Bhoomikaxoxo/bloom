@@ -61,3 +61,4 @@ export const BloomLogo = () => (
 );
 
 export default BloomLogo;
+

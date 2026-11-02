@@ -9,7 +9,7 @@ import {
   Search, Plus, Sparkles, BookOpen, Columns, FileText,
   ArrowDownUp, Clock, ArrowUpAZ, Palette, LayoutGrid, Layers, CheckSquare
 } from 'lucide-react';
-import { CloudDoodle, StarDoodle, MemoryBoxDoodle, EmptyNotesDoodle } from '../ui/Doodles';
+import { CloudDoodle, MemoryBoxDoodle, EmptyNotesDoodle } from '../ui/Doodles';
 
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest', icon: Clock },

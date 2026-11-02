@@ -6,8 +6,8 @@ import Placeholder from '@tiptap/extension-placeholder';
 import Typography from '@tiptap/extension-typography';
 import useSlateStore from '../../store/useSlateStore';
 import {
-  Maximize2, Minimize2, BookOpen, Bold, Italic, Underline as UnderlineIcon,
-  List, ListOrdered, Feather, Sparkles
+  Maximize2, Minimize2, Bold, Italic, Underline as UnderlineIcon,
+  List, ListOrdered
 } from 'lucide-react';
 
 const FormatBtn = ({ onClick, active, title, children }) => (
