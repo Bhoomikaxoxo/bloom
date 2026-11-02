@@ -75,10 +75,6 @@ const NoteEditor = ({ note, onClose }) => {
   const noteFolder = folders.find((f) => f.id === note.folderId);
   const wc = wordCount(note.richText || note.content || '');
 
-  const noteFont = note.fontStyle === 'serif'
-    ? "'Fraunces', Georgia, serif"
-    : "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
-
   // TipTap editor (text notes only)
   const editor = useEditor({
     extensions: [
@@ -184,8 +180,7 @@ const NoteEditor = ({ note, onClose }) => {
               value={note.title}
               onChange={(e) => updateNote(note.id, { title: e.target.value, updatedAt: Date.now() })}
               placeholder="Untitled"
-              className="w-full bg-transparent outline-none font-bold text-xl placeholder:text-black/25"
-              style={{ fontFamily: 'var(--header-font)', color: 'var(--color-text)' }}
+              className="w-full bg-transparent outline-none font-bold text-xl tracking-tight text-[var(--color-text)] placeholder:text-black/25 dark:placeholder:text-white/25"
             />
             <div className="flex items-center gap-3 mt-1 flex-wrap">
               <span className="flex items-center gap-1 text-[11px]" style={{ color: 'var(--color-text-muted)' }}>
@@ -299,34 +294,6 @@ const NoteEditor = ({ note, onClose }) => {
 
             <div className="flex-1" />
 
-            {/* Font family style switcher */}
-            <div className="flex items-center gap-0.5 bg-black/[0.04] dark:bg-white/[0.06] p-0.5 rounded-lg mr-2">
-              <button
-                type="button"
-                onClick={() => updateNote(note.id, { fontStyle: 'sans' })}
-                className={`px-2 py-0.5 rounded text-[11px] font-medium transition-all cursor-pointer ${
-                  (!note.fontStyle || note.fontStyle === 'sans')
-                    ? 'bg-white dark:bg-slate-700 text-[var(--color-accent)] shadow-2xs font-semibold'
-                    : 'text-slate-400 hover:text-slate-600'
-                }`}
-                title="Modern Sans"
-              >
-                Sans
-              </button>
-              <button
-                type="button"
-                onClick={() => updateNote(note.id, { fontStyle: 'serif' })}
-                className={`px-2 py-0.5 rounded text-[11px] font-serif transition-all cursor-pointer ${
-                  note.fontStyle === 'serif'
-                    ? 'bg-white dark:bg-slate-700 text-[var(--color-accent)] shadow-2xs font-semibold'
-                    : 'text-slate-400 hover:text-slate-600'
-                }`}
-                title="Classic Serif"
-              >
-                Serif
-              </button>
-            </div>
-
             {/* Color picker inline */}
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5, 6].map((idx) => (
@@ -385,7 +352,7 @@ const NoteEditor = ({ note, onClose }) => {
         )}
 
         {/* Main content area */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 select-text" style={{ fontFamily: noteFont }}>
+        <div className="flex-1 overflow-y-auto px-6 py-5 select-text">
           {note.type === 'text' && editor && (
             <EditorContent editor={editor} className="min-h-[200px]" />
           )}
@@ -416,10 +383,9 @@ const NoteEditor = ({ note, onClose }) => {
                       type="text"
                       value={item.text}
                       onChange={(e) => updateChecklistItem(note.id, item.id, { text: e.target.value })}
-                      className={`flex-1 bg-transparent outline-none text-sm font-medium transition-all ${
+                      className={`flex-1 bg-transparent outline-none text-sm font-medium transition-all text-[var(--color-text)] ${
                         item.done ? 'line-through opacity-40' : 'opacity-90'
                       }`}
-                      style={{ color: 'var(--color-text)', fontFamily: 'var(--body-font)' }}
                     />
                     <button
                       type="button"
@@ -443,8 +409,7 @@ const NoteEditor = ({ note, onClose }) => {
                   value={newItemText}
                   onChange={(e) => setNewItemText(e.target.value)}
                   placeholder="Add a task… press Enter to save"
-                  className="flex-1 bg-transparent outline-none text-sm"
-                  style={{ color: 'var(--color-text)', fontFamily: 'var(--body-font)' }}
+                  className="flex-1 bg-transparent outline-none text-sm text-[var(--color-text)] placeholder:text-slate-400"
                 />
               </form>
             </div>

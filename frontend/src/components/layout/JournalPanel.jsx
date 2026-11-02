@@ -75,7 +75,6 @@ const JournalPanel = () => {
         placeholder={defaultPlaceholder}
         className="w-full bg-transparent outline-none font-semibold text-lg mb-4 placeholder:opacity-40 border-b pb-2 transition-colors"
         style={{
-          fontFamily: 'var(--header-font)',
           color: 'var(--color-text)',
           borderColor: 'var(--color-card-border)',
         }}
@@ -89,7 +88,6 @@ const JournalPanel = () => {
           placeholder="Write your thoughts, intentions, or anything on your mind…"
           className="absolute inset-0 w-full h-full bg-transparent outline-none resize-none text-sm leading-7 placeholder:opacity-35"
           style={{
-            fontFamily: 'var(--handwriting-font)',
             color: 'var(--color-text)',
             backgroundImage: `repeating-linear-gradient(
               transparent,
