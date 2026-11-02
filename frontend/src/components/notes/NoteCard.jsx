@@ -24,6 +24,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
   const [showFolderMenu, setShowFolderMenu] = useState(false);
   const folderMenuRef = useRef(null);
   const cardRef = useRef(null);
+  const isDraggingRef = useRef(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -91,12 +92,24 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
     updateChecklistItem(note.id, itemId, { done: isNowDone });
   };
 
+  const handleDragStart = () => {
+    isDraggingRef.current = true;
+  };
+
   const handleDragEnd = (event, info) => {
-    const currentX = note.boardPosition?.x ?? 50;
-    const currentY = note.boardPosition?.y ?? 80;
-    const newX = Math.max(10, Math.round(currentX + info.offset.x));
-    const newY = Math.max(10, Math.round(currentY + info.offset.y));
-    updateNotePosition(note.id, newX, newY);
+    // Delay resetting so that any native click event triggered by pointer up is discarded
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 150);
+
+    const distance = Math.hypot(info.offset.x, info.offset.y);
+    if (distance > 3) {
+      const currentX = note.boardPosition?.x ?? 50;
+      const currentY = note.boardPosition?.y ?? 80;
+      const newX = Math.max(10, Math.round(currentX + info.offset.x));
+      const newY = Math.max(10, Math.round(currentY + info.offset.y));
+      updateNotePosition(note.id, newX, newY);
+    }
   };
 
   const noteFolder = folders.find((f) => f.id === note.folderId);
@@ -107,6 +120,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
         dragMomentum: false,
         dragElastic: 0,
         dragConstraints: dragConstraints || { left: 10, top: 10, right: 2000, bottom: 1200 },
+        onDragStart: handleDragStart,
         onDragEnd: handleDragEnd,
         animate: { x: 0, y: 0, opacity: 1 },
         transition: { duration: 0 },
@@ -136,6 +150,9 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
         isDraggable ? 'cursor-grab active:cursor-grabbing z-20' : 'cursor-pointer'
       } ${showTrash ? 'opacity-70 grayscale-[25%]' : ''}`}
       onClick={(e) => {
+        // Prevent opening editor when dropping after a drag gesture
+        if (isDraggingRef.current) return;
+
         const tag = e.target.tagName;
         if (
           onOpen &&
