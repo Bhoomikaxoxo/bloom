@@ -4,7 +4,10 @@ import { THEMES, TAG_COLOR_MAP } from '../../utils/theme-config';
 import BloomLogo from '../ui/BloomLogo';
 import EmojiPickerPopover from '../ui/EmojiPickerPopover';
 import DeviceStorageModal from '../ui/DeviceStorageModal';
-import { Plus, Star, FileText, Trash2, HelpCircle, CheckSquare, CalendarDays, ShieldCheck } from 'lucide-react';
+import {
+  Plus, Star, FileText, Trash2, HelpCircle, CheckSquare,
+  CalendarDays, ShieldCheck, BookOpen, Sparkles
+} from 'lucide-react';
 
 const Sidebar = ({ onCloseMobile }) => {
   const {
@@ -18,6 +21,8 @@ const Sidebar = ({ onCloseMobile }) => {
     setShowCalendar,
     calendarEvents = [],
     folderThemes,
+    journalViewMode,
+    setJournalViewMode,
     setActiveFolderId,
     setActiveTagId,
     setShowTrash,
@@ -89,20 +94,40 @@ const Sidebar = ({ onCloseMobile }) => {
       setShowTrash(false);
       setShowFavorites(false);
       setShowCalendar(false);
+      setJournalViewMode('notes');
     } else if (type === 'favorites') {
       setShowFavorites(true);
       setShowCalendar(false);
+      setShowTrash(false);
+      setActiveFolderId(null);
+      setActiveTagId(null);
+      setJournalViewMode('notes');
+    } else if (type === 'journal') {
+      setShowCalendar(false);
+      setShowTrash(false);
+      setShowFavorites(false);
+      setJournalViewMode('journal');
     } else if (type === 'calendar') {
       setShowCalendar(true);
+      setShowTrash(false);
+      setShowFavorites(false);
     } else if (type === 'folder') {
       setActiveFolderId(id);
       setShowCalendar(false);
+      setShowTrash(false);
+      setShowFavorites(false);
+      setJournalViewMode('notes');
     } else if (type === 'tag') {
       setActiveTagId(id);
       setShowCalendar(false);
+      setShowTrash(false);
+      setShowFavorites(false);
+      setJournalViewMode('notes');
     } else if (type === 'trash') {
       setShowTrash(true);
       setShowCalendar(false);
+      setShowFavorites(false);
+      setJournalViewMode('notes');
     }
     if (onCloseMobile) onCloseMobile();
   };
@@ -114,12 +139,12 @@ const Sidebar = ({ onCloseMobile }) => {
         <BloomLogo />
       </div>
 
-      {/* Main Views (All Notes, Favorites) */}
+      {/* Main Views (All Notes, Favorites, Journal, Calendar) */}
       <div className="mb-4 space-y-1">
         <button
           onClick={() => selectView('all')}
           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
-            activeFolderId === null && !activeTagId && !showTrash && !showFavorites
+            activeFolderId === null && !activeTagId && !showTrash && !showFavorites && !showCalendar && journalViewMode !== 'journal'
               ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
               : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
           }`}
@@ -147,6 +172,23 @@ const Sidebar = ({ onCloseMobile }) => {
           </div>
           <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] opacity-75">
             {favoritesCount}
+          </span>
+        </button>
+
+        <button
+          onClick={() => selectView('journal')}
+          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+            journalViewMode === 'journal' && !showCalendar
+              ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
+              : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <BookOpen className="w-4 h-4 text-[var(--color-accent)]" />
+            <span>Daily Journal</span>
+          </div>
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-accent-bg)] text-[var(--color-accent)]">
+            Today
           </span>
         </button>
 
@@ -450,6 +492,12 @@ const Sidebar = ({ onCloseMobile }) => {
                 style={{ width: `${tasksPercent}%` }}
               />
             </div>
+            {tasksPercent === 100 && (
+              <div className="flex items-center gap-1 mt-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
+                <Sparkles className="w-3 h-3" />
+                <span>All tasks done today! Great job 🌸</span>
+              </div>
+            )}
           </div>
         )}
 
