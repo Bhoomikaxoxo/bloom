@@ -51,6 +51,9 @@ const CalendarView = () => {
     addNote,
     setOpenNoteId,
     triggerConfetti,
+    quickCapture,
+    setTaskStatus,
+    deleteNote,
   } = useSlateStore();
 
   const todayKey = useMemo(() => formatDateKey(new Date()), []);
@@ -135,20 +138,39 @@ const CalendarView = () => {
     return days;
   }, [year, month]);
 
-  // Events grouped by date
+  // Unified tasks & events grouped by date (Implementation Intentions bridge)
   const eventsByDate = useMemo(() => {
     const map = {};
     (calendarEvents || []).forEach((evt) => {
       if (!map[evt.date]) map[evt.date] = [];
-      map[evt.date].push(evt);
+      map[evt.date].push({ ...evt, isCalendarEvent: true });
+    });
+    (notes || []).forEach((note) => {
+      if (note.deletedAt !== null) return;
+      if (note.scheduledDate && (note.type === 'task' || note.type === 'checklist')) {
+        const d = note.scheduledDate;
+        if (!map[d]) map[d] = [];
+        if (!map[d].some((item) => item.id === note.id)) {
+          map[d].push({
+            id: note.id,
+            title: note.title,
+            date: note.scheduledDate,
+            time: note.timeBlock || '',
+            category: note.energyDomain || 'personal',
+            completed: note.status === 'completed',
+            isNoteItem: true,
+          });
+        }
+      }
     });
     return map;
-  }, [calendarEvents]);
+  }, [calendarEvents, notes]);
 
   // Selected date events & notes
   const selectedEvents = eventsByDate[selectedDateKey] || [];
   const selectedNotes = (notes || []).filter((n) => {
     if (n.deletedAt !== null) return false;
+    if (n.type === 'task') return false; // Tasks already rendered in selectedEvents
     const noteCreatedKey = formatDateKey(n.createdAt);
     return n.scheduledDate === selectedDateKey || noteCreatedKey === selectedDateKey;
   });
@@ -172,12 +194,22 @@ const CalendarView = () => {
     e.preventDefault();
     if (!newEventTitle.trim()) return;
 
-    addCalendarEvent({
-      title: newEventTitle.trim(),
-      date: selectedDateKey,
-      time: newEventTime.trim(),
-      category: newEventCategory,
-    });
+    // Add to unified tasks model so it appears in Daily Flow & Calendar
+    if (quickCapture) {
+      quickCapture(newEventTitle.trim(), {
+        scheduledDate: selectedDateKey,
+        timeBlock: newEventTime.trim() || null,
+        energyDomain: newEventCategory,
+        type: 'task',
+      });
+    } else {
+      addCalendarEvent({
+        title: newEventTitle.trim(),
+        date: selectedDateKey,
+        time: newEventTime.trim(),
+        category: newEventCategory,
+      });
+    }
 
     setNewEventTitle('');
     setNewEventTime('');
@@ -189,12 +221,24 @@ const CalendarView = () => {
   };
 
   const handleToggleEvent = (evt, e) => {
-    toggleCalendarEvent(evt.id);
+    if (evt.isNoteItem && setTaskStatus) {
+      setTaskStatus(evt.id, evt.completed ? 'todo' : 'completed');
+    } else {
+      toggleCalendarEvent(evt.id);
+    }
     if (!evt.completed) {
       const uncompletedCount = selectedEvents.filter((item) => !item.completed && item.id !== evt.id).length;
       if (uncompletedCount === 0) {
         triggerConfetti(e?.clientX || window.innerWidth / 2, e?.clientY || window.innerHeight / 2);
       }
+    }
+  };
+
+  const handleDeleteItem = (evt) => {
+    if (evt.isNoteItem && deleteNote) {
+      deleteNote(evt.id);
+    } else {
+      deleteCalendarEvent(evt.id);
     }
   };
 
@@ -528,7 +572,7 @@ const CalendarView = () => {
                         {/* Delete Action */}
                         <button
                           type="button"
-                          onClick={() => deleteCalendarEvent(evt.id)}
+                          onClick={() => handleDeleteItem(evt)}
                           className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer flex-shrink-0"
                           title="Delete item"
                         >

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -7,7 +7,8 @@ import Typography from '@tiptap/extension-typography';
 import useSlateStore from '../../store/useSlateStore';
 import {
   Maximize2, Minimize2, Bold, Italic, Underline as UnderlineIcon,
-  List, ListOrdered, Feather, Sparkles
+  List, ListOrdered, Feather, CalendarDays, ChevronLeft, ChevronRight,
+  Sparkles, CheckSquare, Clock, ArrowRight, Heading2
 } from 'lucide-react';
 
 const FormatBtn = ({ onClick, active, title, children }) => (
@@ -20,123 +21,220 @@ const FormatBtn = ({ onClick, active, title, children }) => (
     title={title}
     className={`p-1.5 rounded-lg text-xs transition-all cursor-pointer flex items-center justify-center ${
       active
-        ? 'bg-[var(--color-accent)] text-white shadow-2xs font-bold'
-        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
+        ? 'bg-[#C2531C] text-white shadow-2xs font-bold'
+        : 'text-[#6B665F] hover:text-[#1F1D1A] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
     }`}
   >
     {children}
   </button>
 );
 
-const QUICK_PROMPTS = [
-  { label: '💖 Gratitude', html: '<p><strong>💖 Grateful for:</strong></p><ul><li></li></ul>' },
-  { label: '🌱 Priorities', html: '<p><strong>🌱 Priorities today:</strong></p><ol><li></li><li></li><li></li></ol>' },
-  { label: '☕ Mindful Check-in', html: '<p><strong>☕ How I am feeling right now:</strong></p><p></p>' },
-  { label: '✨ Daily Wins', html: '<p><strong>✨ Small wins today:</strong></p><ul><li></li></ul>' },
-];
+const formatDateKey = (d) => {
+  const date = new Date(d);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
-const JournalPanel = () => {
+const JournalPanel = ({ onClose }) => {
   const {
-    activeFolderId,
-    folders,
-    journals,
+    journals = {},
     updateJournal,
-    journalViewMode,
+    quickCapture,
+    triggerConfetti,
   } = useSlateStore();
 
+  const todayKey = useMemo(() => formatDateKey(new Date()), []);
+  const [selectedDateKey, setSelectedDateKey] = useState(todayKey);
   const [isZoomed, setIsZoomed] = useState(false);
   const [isCursive, setIsCursive] = useState(false);
+  const [taskSentNotice, setTaskSentNotice] = useState(false);
 
-  const activeFolder = folders.find((f) => f.id === activeFolderId);
-  const journalKey = activeFolderId || 'global';
-  const journalData = journals[journalKey] || { title: '', content1: '' };
+  // Each day stores its own persistent data under journals[selectedDateKey]
+  const currentJournalData = journals[selectedDateKey] || {
+    title: '',
+    content1: '',
+    isCursive: false,
+  };
 
-  const handleTitleChange = (e) => updateJournal(activeFolderId, { title: e.target.value });
+  const selectedDateObj = useMemo(() => {
+    const parts = selectedDateKey.split('-');
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  }, [selectedDateKey]);
 
-  const displayTitle = journalData.title !== undefined ? journalData.title : '';
-  const defaultPlaceholder = activeFolder
-    ? `${activeFolder.icon} ${activeFolder.name} · Journal`
-    : 'Today';
-
-  const isJournalOnly = journalViewMode === 'journal';
-  const panelWidthClass = isJournalOnly
-    ? 'w-full flex-1'
-    : 'w-full lg:w-[380px] xl:w-[420px] flex-shrink-0';
-
-  const todayStr = new Date().toLocaleDateString('en-US', {
+  const displayDateFormatted = selectedDateObj.toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
+    year: 'numeric',
   });
 
+  const isToday = selectedDateKey === todayKey;
+
+  // Day navigation
+  const prevDay = () => {
+    const d = new Date(selectedDateObj.getTime() - 86400000);
+    setSelectedDateKey(formatDateKey(d));
+  };
+
+  const nextDay = () => {
+    const d = new Date(selectedDateObj.getTime() + 86400000);
+    setSelectedDateKey(formatDateKey(d));
+  };
+
+  const jumpToToday = () => {
+    setSelectedDateKey(todayKey);
+  };
+
+  // TipTap Rich Text Editor
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
         bulletList: { keepMarks: true, keepAttributes: false },
         orderedList: { keepMarks: true, keepAttributes: false },
+        heading: { levels: [2, 3] },
       }),
       Underline,
       Typography,
       Placeholder.configure({
-        placeholder: 'Write your thoughts, daily priorities, or notes here…',
+        placeholder: 'Write daily notes, commitments, bullet points, or reflections…',
       }),
     ],
-    content: journalData.content1 || '',
+    content: currentJournalData.content1 || '',
     editorProps: {
       attributes: {
-        class: 'outline-none h-full min-h-[300px] text-sm focus:outline-none select-text',
+        class: 'outline-none h-full min-h-[340px] text-sm focus:outline-none select-text leading-relaxed',
       },
     },
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
-      updateJournal(activeFolderId, { content1: html });
+      updateJournal(selectedDateKey, {
+        content1: html,
+        updatedAt: Date.now(),
+      });
     },
-  }, [journalKey]);
+  }, [selectedDateKey]);
 
-  // Keep editor content in sync when switching folders
+  // Sync editor content whenever switching days
   useEffect(() => {
-    if (editor && journalData.content1 !== undefined) {
+    if (editor && currentJournalData.content1 !== undefined) {
       const currentHtml = editor.getHTML();
-      if (currentHtml !== journalData.content1) {
-        editor.commands.setContent(journalData.content1 || '');
+      if (currentHtml !== currentJournalData.content1) {
+        editor.commands.setContent(currentJournalData.content1 || '');
       }
     }
-  }, [journalKey, editor]);
+  }, [selectedDateKey, editor]);
+
+  const handleTitleChange = (e) => {
+    updateJournal(selectedDateKey, {
+      title: e.target.value,
+      updatedAt: Date.now(),
+    });
+  };
+
+  // Convert Bullet points / Lines to Scheduled Tasks on Day Spine / Calendar
+  const handleExtractTasks = (e) => {
+    if (!editor) return;
+    const text = editor.getText();
+    const lines = text.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) return;
+
+    let addedCount = 0;
+    lines.forEach((line) => {
+      // Clean leading dashes, bullets, or numbers
+      const cleanTitle = line.replace(/^[-*•\d.]+\s*/, '').trim();
+      if (cleanTitle.length > 2) {
+        quickCapture(cleanTitle, {
+          scheduledDate: selectedDateKey,
+          type: 'task',
+          energyDomain: 'focus',
+        });
+        addedCount++;
+      }
+    });
+
+    if (addedCount > 0) {
+      triggerConfetti(e?.clientX || window.innerWidth / 2, e?.clientY || 100);
+      setTaskSentNotice(true);
+      setTimeout(() => setTaskSentNotice(false), 3000);
+    }
+  };
 
   const renderContent = (isLightbox = false) => (
-    <div className="flex flex-col flex-1 h-full overflow-hidden p-5 sm:p-6 bg-[var(--color-card-bg)]">
-      {/* Top Date & Focus Header */}
-      <div className="flex items-center justify-between mb-3 flex-shrink-0">
+    <div className="flex flex-col flex-1 h-full overflow-hidden p-5 sm:p-7 bg-[#FDFCF9] select-text">
+      {/* Top Temporal Navigator */}
+      <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#E8E3D8] flex-shrink-0">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold tracking-wider text-[var(--color-text-muted)] uppercase">
-            {todayStr}
-          </span>
-          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] opacity-60" />
-          <span className="text-[10px] text-[var(--color-text-muted)] opacity-70">
-            Auto-saving
+          <div className="flex items-center gap-1 bg-black/[0.04] dark:bg-white/[0.06] rounded-full p-0.5 border border-[#E8E3D8]">
+            <button
+              type="button"
+              onClick={prevDay}
+              className="p-1 rounded-full text-[#6B665F] hover:text-[#1F1D1A] hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer"
+              title="Previous Day"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={jumpToToday}
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+                isToday
+                  ? 'bg-[#C2531C] text-white shadow-2xs'
+                  : 'text-[#6B665F] hover:text-[#1F1D1A]'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              onClick={nextDay}
+              className="p-1 rounded-full text-[#6B665F] hover:text-[#1F1D1A] hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer"
+              title="Next Day"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <span className="text-xs font-serif font-semibold text-[#1F1D1A] hidden sm:inline ml-1">
+            {displayDateFormatted}
           </span>
         </div>
-        <button
-          onClick={() => setIsZoomed(!isZoomed)}
-          className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
-          title={isZoomed ? 'Exit Focus' : 'Focus mode'}
-        >
-          {isZoomed ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-3.5 h-3.5" />}
-        </button>
+
+        <div className="flex items-center gap-2">
+          {/* Quick Bridge to Tasks */}
+          <button
+            type="button"
+            onClick={handleExtractTasks}
+            className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#FAF5EB] text-[#7D5E29] border border-[#EBDCBF] hover:bg-[#F2E7D3] transition-all cursor-pointer"
+            title="Convert notes and bullet points into scheduled tasks"
+          >
+            <CheckSquare className="w-3.5 h-3.5 text-[#C2531C]" />
+            <span>{taskSentNotice ? 'Added to Tasks!' : 'Send to Tasks'}</span>
+          </button>
+
+          <button
+            onClick={() => setIsZoomed(!isZoomed)}
+            className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-[#6B665F] hover:text-[#1F1D1A]"
+            title={isZoomed ? 'Exit Focus Mode' : 'Focus Mode'}
+          >
+            {isZoomed ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          </button>
+        </div>
       </div>
 
-      {/* Page title input */}
+      {/* Entry Title Input */}
       <input
         type="text"
-        value={displayTitle}
+        value={currentJournalData.title || ''}
         onChange={handleTitleChange}
-        placeholder={defaultPlaceholder}
-        className="w-full bg-transparent outline-none font-bold text-lg mb-3 pb-2 border-b border-black/[0.08] dark:border-white/[0.1] text-[var(--color-text)] placeholder:text-black/25 dark:placeholder:text-white/25 transition-colors"
+        placeholder={`Notes for ${displayDateFormatted}…`}
+        className="w-full bg-transparent outline-none font-serif font-bold text-xl mb-3 pb-1 border-b border-[#E8E3D8] text-[#1F1D1A] placeholder:text-[#969087] transition-colors"
       />
 
-      {/* Formatting Toolbar */}
+      {/* Formatting Toolbar: Bold, Italic, Underline, Bullet list, Numbered list, Heading, Cursive */}
       {editor && (
-        <div className="flex items-center gap-1 pb-2.5 mb-2 border-b border-black/[0.06] dark:border-white/[0.08] flex-shrink-0 flex-wrap">
+        <div className="flex items-center gap-1 pb-2.5 mb-3 border-b border-[#E8E3D8] flex-shrink-0 flex-wrap">
           <FormatBtn
             onClick={() => editor.chain().focus().toggleBold().run()}
             active={editor.isActive('bold')}
@@ -159,7 +257,7 @@ const JournalPanel = () => {
             <UnderlineIcon className="w-3.5 h-3.5" />
           </FormatBtn>
 
-          <div className="w-px h-3.5 mx-1 bg-black/[0.08] dark:bg-white/[0.1]" />
+          <div className="w-px h-3.5 mx-1 bg-[#E8E3D8]" />
 
           <FormatBtn
             onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -176,53 +274,41 @@ const JournalPanel = () => {
             <ListOrdered className="w-3.5 h-3.5" />
           </FormatBtn>
 
-          <div className="w-px h-3.5 mx-1 bg-black/[0.08] dark:bg-white/[0.1]" />
+          <FormatBtn
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            active={editor.isActive('heading', { level: 2 })}
+            title="Heading"
+          >
+            <Heading2 className="w-3.5 h-3.5" />
+          </FormatBtn>
 
-          {/* Cursive / Script Handwriting Toggle */}
+          <div className="w-px h-3.5 mx-1 bg-[#E8E3D8]" />
+
+          {/* Cursive Handwriting Toggle */}
           <button
             type="button"
             onClick={() => setIsCursive(!isCursive)}
-            className={`px-2 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer font-medium ${
+            className={`px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer font-medium ${
               isCursive
-                ? 'bg-[var(--color-accent)] text-white shadow-2xs font-bold'
-                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
+                ? 'bg-[#C2531C] text-white shadow-2xs font-bold'
+                : 'text-[#6B665F] hover:text-[#1F1D1A] hover:bg-black/[0.05]'
             }`}
-            title="Cursive Handwriting Style"
+            title="Toggle Handwritten Cursive Font"
           >
             <Feather className="w-3.5 h-3.5" />
-            <span style={{ fontFamily: "'Caveat', cursive", fontSize: '15px' }}>Cursive</span>
+            <span style={{ fontFamily: "'Caveat', cursive", fontSize: '16px' }}>Cursive</span>
           </button>
         </div>
       )}
 
-      {/* Cozy Quick Prompts */}
-      <div className="flex items-center gap-1.5 pb-2.5 mb-1 overflow-x-auto scrollbar-none flex-shrink-0">
-        <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider flex items-center gap-1 flex-shrink-0">
-          <Sparkles className="w-3 h-3 text-amber-400" /> Prompts:
-        </span>
-        {QUICK_PROMPTS.map((p) => (
-          <button
-            key={p.label}
-            type="button"
-            onClick={() => {
-              if (editor) {
-                editor.chain().focus().insertContent(p.html).run();
-              }
-            }}
-            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-black/[0.03] dark:bg-white/[0.05] hover:bg-[var(--color-accent-bg)] hover:text-[var(--color-accent)] border border-black/[0.05] dark:border-white/[0.08] transition-all cursor-pointer whitespace-nowrap flex-shrink-0 active:scale-95"
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Journal writing area with subtle luxury notebook margin */}
+      {/* Writing Area with Ruled Ledger Margin */}
       <div
-        className="flex-1 overflow-y-auto journal-notebook-editor pr-2 pt-2 border-l-2 border-[var(--color-card-border)] pl-4 ml-1"
+        className="flex-1 overflow-y-auto pr-3 pt-1 border-l-2 border-[#E5C2AE] pl-5 ml-1 transition-all"
         style={{
-          fontFamily: isCursive ? "'Caveat', cursive" : 'inherit',
-          fontSize: isCursive ? '19px' : '14px',
-          color: 'var(--color-text)',
+          fontFamily: isCursive ? "'Caveat', cursive" : "var(--font-serif)",
+          fontSize: isCursive ? '20px' : '15px',
+          lineHeight: isCursive ? '1.9' : '1.7',
+          color: '#1F1D1A',
         }}
       >
         {editor && <EditorContent editor={editor} />}
@@ -232,9 +318,7 @@ const JournalPanel = () => {
 
   return (
     <>
-      <div
-        className={`${panelWidthClass} flex flex-col h-full border-r border-black/[0.08] dark:border-white/[0.08] transition-all duration-300 shadow-xs`}
-      >
+      <div className="w-full flex flex-col h-full bg-[#FDFCF9] border-l border-[#E8E3D8] shadow-xs">
         {renderContent(false)}
       </div>
 
@@ -245,7 +329,7 @@ const JournalPanel = () => {
           onClick={() => setIsZoomed(false)}
         >
           <div
-            className="w-full max-w-3xl h-[85vh] rounded-2xl overflow-hidden shadow-2xl border border-[var(--color-card-border)] bg-[var(--color-card-bg)] animate-scale-in"
+            className="w-full max-w-3xl h-[85vh] rounded-2xl overflow-hidden shadow-2xl border border-[#E8E3D8] bg-[#FDFCF9] animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             {renderContent(true)}

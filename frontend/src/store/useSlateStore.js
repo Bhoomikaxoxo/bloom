@@ -237,6 +237,188 @@ const useSlateStore = create(
         return { folderThemes: newFolderThemes };
       }),
 
+      workspaceView: 'spine', // 'spine' (Daily Stream) | 'canvas' (Macro Desk) | 'calendar' (Month Grid)
+      setWorkspaceView: (view) => set({ workspaceView: view, showCalendar: view === 'calendar' }),
+
+      setTaskStatus: (id, status) => set((state) => {
+        let isDone = status === 'completed';
+        return {
+          notes: state.notes.map((note) => {
+            if (note.id !== id) return note;
+            return {
+              ...note,
+              status,
+              updatedAt: Date.now(),
+              completedAt: isDone ? Date.now() : null,
+            };
+          }),
+        };
+      }),
+
+      setTodayAnchor: (id) => set((state) => ({
+        notes: state.notes.map((note) => ({
+          ...note,
+          isAnchor: note.id === id ? !note.isAnchor : false,
+          updatedAt: note.id === id ? Date.now() : note.updatedAt,
+        })),
+      })),
+
+      scheduleItem: (id, scheduledDate, timeBlock = null) => set((state) => ({
+        notes: state.notes.map((note) =>
+          note.id === id
+            ? { ...note, scheduledDate, timeBlock, updatedAt: Date.now() }
+            : note
+        ),
+      })),
+
+      quickCapture: (title, overrides = {}) => {
+        if (!title.trim()) return null;
+        const id = 'item-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4);
+        const isTask = overrides.type === 'task' || !overrides.content;
+        const newItem = {
+          id,
+          title: title.trim(),
+          type: isTask ? 'task' : 'note',
+          status: 'todo',
+          isAnchor: overrides.isAnchor || false,
+          scheduledDate: overrides.scheduledDate || getTodayDateStr(),
+          timeBlock: overrides.timeBlock || null,
+          durationMinutes: overrides.durationMinutes || 30,
+          energyDomain: overrides.energyDomain || 'focus',
+          colorIndex: 1,
+          isPinned: false,
+          isFavorite: false,
+          deletedAt: null,
+          folderId: overrides.folderId || get().activeFolderId,
+          tags: overrides.tags || (get().activeTagId ? [get().activeTagId] : []),
+          content: overrides.content || '',
+          checklist: overrides.checklist || [],
+          boardPosition: { x: 100 + Math.random() * 80, y: 100 + Math.random() * 80 },
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          stickers: [],
+        };
+        set((state) => ({
+          notes: [newItem, ...state.notes]
+        }));
+        return id;
+      },
+
+      convertNoteToTask: (noteId, taskText, scheduledDate = null, timeBlock = null) => {
+        const id = 'task-' + Date.now().toString(36);
+        const newTask = {
+          id,
+          title: taskText.trim(),
+          type: 'task',
+          status: 'todo',
+          isAnchor: false,
+          scheduledDate: scheduledDate || getTodayDateStr(),
+          timeBlock: timeBlock || null,
+          energyDomain: 'focus',
+          colorIndex: 2,
+          isPinned: false,
+          isFavorite: false,
+          deletedAt: null,
+          folderId: get().activeFolderId,
+          tags: ['from-note'],
+          content: '',
+          checklist: [],
+          boardPosition: { x: 140, y: 140 },
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          stickers: [],
+        };
+        set((state) => ({
+          notes: [newTask, ...state.notes]
+        }));
+        return id;
+      },
+
+      getSurfacedInsight: () => {
+        const state = get();
+        const today = getTodayDateStr();
+        const todayItems = state.notes.filter(
+          (n) => n.deletedAt === null && (n.scheduledDate === today || n.isAnchor)
+        );
+        const inProgress = todayItems.find((n) => n.status === 'in_progress');
+        const anchor = todayItems.find((n) => n.isAnchor && n.status !== 'completed');
+        const openTasks = todayItems.filter(
+          (n) => (n.type === 'task' || n.type === 'checklist') && n.status !== 'completed'
+        );
+        const hour = new Date().getHours();
+
+        if (inProgress) {
+          return {
+            type: 'in_progress',
+            badge: 'Active Attention',
+            headline: inProgress.title,
+            subtext: 'Holding active working memory. Ready to close or defer?',
+            itemId: inProgress.id,
+          };
+        }
+
+        if (anchor) {
+          return {
+            type: 'anchor',
+            badge: "Today's Anchor",
+            headline: anchor.title,
+            subtext: 'Highest leverage outcome designated for today.',
+            itemId: anchor.id,
+          };
+        }
+
+        if (hour >= 17 && openTasks.length > 0) {
+          return {
+            type: 'slipping',
+            badge: 'Attention Horizon',
+            headline: `${openTasks.length} ${openTasks.length === 1 ? 'commitment' : 'commitments'} open before day closes`,
+            subtext: `"${openTasks[0].title}" — complete or reschedule to protect your streak.`,
+            itemId: openTasks[0].id,
+          };
+        }
+
+        if (openTasks.length > 0) {
+          return {
+            type: 'next_up',
+            badge: 'Next Priority',
+            headline: openTasks[0].title,
+            subtext: `${openTasks.length} active tasks scheduled on today's timeline.`,
+            itemId: openTasks[0].id,
+          };
+        }
+
+        return {
+          type: 'clear',
+          badge: 'Clear Horizon',
+          headline: 'All commitments for today are completed',
+          subtext: 'Working memory unburdened. Rest or capture intentions for tomorrow.',
+          itemId: null,
+        };
+      },
+
+      getReflectionPrompt: () => {
+        const hour = new Date().getHours();
+        if (hour < 12) {
+          return {
+            timeOfDay: 'Morning Intention',
+            prompt: 'What is the single most meaningful outcome you want to protect today?',
+            suggestedTag: 'intention',
+          };
+        }
+        if (hour < 17) {
+          return {
+            timeOfDay: 'Midday Checkpoint',
+            prompt: 'What small win can you finish right now before the afternoon slips?',
+            suggestedTag: 'momentum',
+          };
+        }
+        return {
+          timeOfDay: 'Evening Reflection',
+          prompt: 'What went well today that gave you genuine energy and clarity?',
+          suggestedTag: 'reflection',
+        };
+      },
+
       // --- NOTES CRUD ---
       addNote: (type = 'text', scheduledDate = null) => {
         const id = 'note-' + Math.random().toString(36).substr(2, 9);

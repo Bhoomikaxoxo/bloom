@@ -4,11 +4,14 @@ import useSlateStore from '../../store/useSlateStore';
 import NoteCard from '../notes/NoteCard';
 import NoteEditor from '../notes/NoteEditor';
 import CalendarView from '../calendar/CalendarView';
+import JournalPanel from './JournalPanel';
+import DailySpineView from '../spine/DailySpineView';
 import ThemeSwitcher from './ThemeSwitcher';
 import {
   Search, Plus, Sparkles, FileText, ArrowDownUp, Clock,
   ArrowUpAZ, Palette, LayoutGrid, Layers, CheckSquare,
-  CalendarDays, X, Check, Coffee, Sun, Moon, Star, Trash2
+  CalendarDays, X, Check, Star, Trash2, Compass, BookOpen,
+  Folder, Tag, ShieldCheck
 } from 'lucide-react';
 import { CloudDoodle, MemoryBoxDoodle, EmptyNotesDoodle } from '../ui/Doodles';
 
@@ -17,6 +20,14 @@ const SORT_OPTIONS = [
   { value: 'oldest', label: 'Oldest First', icon: Clock },
   { value: 'az', label: 'Title (A → Z)', icon: ArrowUpAZ },
   { value: 'color', label: 'Note Color', icon: Palette },
+];
+
+const ENERGY_FILTERS = [
+  { id: 'all', label: 'All Domains' },
+  { id: 'focus', label: 'Deep Focus', dot: '#244A38' },
+  { id: 'urgent', label: 'Immediate', dot: '#A63E0F' },
+  { id: 'routine', label: 'Routine', dot: '#7D5E29' },
+  { id: 'calm', label: 'Sanctuary', dot: '#58446B' },
 ];
 
 const MainCanvas = () => {
@@ -30,8 +41,8 @@ const MainCanvas = () => {
     viewMode,
     showTrash,
     showFavorites,
-    showCalendar,
-    setShowCalendar,
+    workspaceView,
+    setWorkspaceView,
     sortMode,
     openNoteId,
     setSearchQuery,
@@ -45,6 +56,7 @@ const MainCanvas = () => {
   } = useSlateStore();
 
   const [cardFilter, setCardFilter] = useState('all'); // 'all' | 'pinned' | 'checklist' | 'text'
+  const [energyFilter, setEnergyFilter] = useState('all');
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef(null);
   const boardConstraintsRef = useRef(null);
@@ -90,22 +102,26 @@ const MainCanvas = () => {
       }
 
       if (!isInput && !meta && !openNoteId) {
-        if (e.key === 'g' || e.key === 'G') {
+        if (e.key === '1') {
+          setWorkspaceView('spine');
+        } else if (e.key === '2') {
+          setWorkspaceView('canvas');
+        } else if (e.key === '3') {
+          setWorkspaceView('calendar');
+        } else if (e.key === '4') {
+          setWorkspaceView('journal');
+        } else if (e.key === 'g' || e.key === 'G') {
           setViewMode('grid');
-          setShowCalendar(false);
         } else if (e.key === 'b' || e.key === 'B') {
           setViewMode('board');
-          setShowCalendar(false);
-        } else if (e.key === 'p' || e.key === 'P') {
-          setShowCalendar(!showCalendar);
         }
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [addNote, setOpenNoteId, openNoteId, setViewMode, showCalendar, setShowCalendar]);
+  }, [addNote, setOpenNoteId, openNoteId, setViewMode, setWorkspaceView]);
 
-  // Filter notes for the current active view (folder, tag, favorites, trash, search)
+  // Filter notes for the current active view
   const baseNotesInView = notes.filter((note) => {
     if (showTrash) {
       if (note.deletedAt === null) return false;
@@ -115,6 +131,8 @@ const MainCanvas = () => {
     if (showFavorites && !note.isFavorite) return false;
     if (activeFolderId && note.folderId !== activeFolderId) return false;
     if (activeTagId && !note.tags?.includes(activeTagId)) return false;
+
+    if (energyFilter !== 'all' && note.energyDomain !== energyFilter) return false;
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -158,32 +176,8 @@ const MainCanvas = () => {
     setOpenNoteId(id);
   }, [addNote, setOpenNoteId]);
 
-  // Greeting & Date formatting without emojis
-  const getGreetingData = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return { text: 'Good morning', Icon: Sun };
-    if (hour < 18) return { text: 'Good afternoon', Icon: Coffee };
-    return { text: 'Good evening', Icon: Moon };
-  };
-
-  const greeting = getGreetingData();
-  const todayFormatted = new Date().toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-
-  // Task stats in current view
-  const allTasksInView = baseNotesInView
-    .filter((n) => n.type === 'checklist')
-    .flatMap((n) => n.checklist || []);
-  const completedTasks = allTasksInView.filter((t) => t.done).length;
-  const totalTasks = allTasksInView.length;
-
-  const currentViewTitle = showCalendar
-    ? 'Calendar & Planner'
-    : showTrash
+  // Determine current view title
+  const currentViewTitle = showTrash
     ? 'Memory Box'
     : showFavorites
     ? 'Favorites'
@@ -191,50 +185,65 @@ const MainCanvas = () => {
     ? activeFolder.name
     : activeTag
     ? `#${activeTag.name}`
-    : 'All Notes & Tasks';
+    : workspaceView === 'spine'
+    ? 'Daily Flow'
+    : workspaceView === 'calendar'
+    ? 'Calendar & Planner'
+    : workspaceView === 'journal'
+    ? 'Daily Journal'
+    : 'Desk Canvas';
+
+  const isFilteredOrSpecial = Boolean(activeFolderId || activeTagId || showTrash || showFavorites);
 
   return (
-    <main className="flex-1 flex flex-col h-screen overflow-hidden transition-colors select-none">
+    <main className="flex-1 flex flex-col h-screen overflow-hidden transition-colors select-none bg-[#F8F6F1]">
       {/* =========================================================================
           TOP NAVIGATION BAR: Clean, Minimal, Aesthetic, Zero Emojis
           ========================================================================= */}
-      <header className="h-16 px-5 sm:px-6 border-b border-black/[0.08] dark:border-white/[0.08] bg-[var(--color-sidebar-bg)] backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
+      <header className="h-16 px-5 sm:px-6 border-b border-[#E8E3D8] bg-[#F8F6F1]/90 backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
         
         {/* Zone 1 (Left): View Title & Filter Breadcrumb */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex-shrink-0 flex items-center justify-center">
-            {showCalendar ? (
-              <CalendarDays className="w-5 h-5 text-[var(--color-accent)]" />
-            ) : showTrash ? (
-              <Trash2 className="w-5 h-5 text-[var(--color-accent)]" />
+            {showTrash ? (
+              <Trash2 className="w-5 h-5 text-rose-600" />
             ) : showFavorites ? (
               <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
             ) : activeFolder ? (
               <span className="text-xl leading-none">{activeFolder.icon}</span>
             ) : activeTag ? (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--color-accent-bg)] text-[var(--color-accent)]">#</span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#FDF8F5] text-[#C2531C] border border-[#F2DDD1]">#</span>
+            ) : workspaceView === 'spine' ? (
+              <Compass className="w-5 h-5 text-[#C2531C]" />
+            ) : workspaceView === 'calendar' ? (
+              <CalendarDays className="w-5 h-5 text-[#244A38]" />
+            ) : workspaceView === 'journal' ? (
+              <BookOpen className="w-5 h-5 text-[#7D5E29]" />
             ) : (
-              <FileText className="w-5 h-5 text-[var(--color-accent)]" />
+              <LayoutGrid className="w-5 h-5 text-[#C2531C]" />
             )}
           </div>
 
           <div className="flex items-center gap-2 truncate">
-            <h2 className="text-sm sm:text-base font-bold text-[var(--color-text)] truncate">
+            <h2 className="text-sm sm:text-base font-serif font-bold text-[#1F1D1A] tracking-tight truncate">
               {currentViewTitle}
             </h2>
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.05] dark:bg-white/[0.08] text-[var(--color-text-muted)] flex-shrink-0">
+            <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-black/[0.05] text-[#6B665F] flex-shrink-0">
               {baseNotesInView.length}
             </span>
 
             {/* Clear Filter Button if inside a folder or tag */}
-            {(activeFolderId || activeTagId) && (
+            {isFilteredOrSpecial && (
               <button
                 type="button"
                 onClick={() => {
                   setActiveFolderId(null);
                   setActiveTagId(null);
+                  if (showTrash) useSlateStore.getState().setShowTrash(false);
+                  if (showFavorites) useSlateStore.getState().setShowFavorites(false);
+                  setWorkspaceView('canvas');
                 }}
-                className="hidden md:flex items-center gap-1 text-[10px] font-semibold text-[var(--color-text-muted)] hover:text-red-500 bg-black/[0.03] dark:bg-white/[0.06] hover:bg-red-50 dark:hover:bg-red-950/30 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                className="hidden md:flex items-center gap-1 text-[10px] font-semibold text-[#6B665F] hover:text-red-500 bg-black/[0.03] hover:bg-red-50 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
                 title="Clear filter and view all notes"
               >
                 <span>Clear</span>
@@ -244,71 +253,107 @@ const MainCanvas = () => {
           </div>
         </div>
 
-        {/* Zone 2 (Center): Omni-Search Bar */}
-        <div className="relative w-48 sm:w-64 md:w-72 max-w-sm flex-shrink">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" />
-          <input
-            ref={searchRef}
-            type="text"
-            placeholder="Search notes, tasks… (⌘K)"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-8 py-1.5 bg-black/[0.03] dark:bg-white/[0.05] text-[var(--color-text)] rounded-full text-xs font-medium outline-none border border-black/[0.06] dark:border-white/[0.08] focus:border-[var(--color-accent)] focus:bg-[var(--color-card-bg)] transition-all placeholder:text-slate-400"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-              title="Clear search"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
+        {/* Zone 2 (Center): Segmented Cognitive Lenses Switcher */}
+        <div className="hidden lg:flex items-center bg-black/[0.04] p-0.5 rounded-full border border-[#E8E3D8] shadow-2xs">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveFolderId(null);
+              setActiveTagId(null);
+              setWorkspaceView('spine');
+            }}
+            className={`px-3 py-1 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+              workspaceView === 'spine' && !isFilteredOrSpecial
+                ? 'bg-white text-[#C2531C] shadow-xs font-bold'
+                : 'text-[#6B665F] hover:text-[#1F1D1A]'
+            }`}
+          >
+            <Compass className="w-3.5 h-3.5 text-[#C2531C]" />
+            <span>Daily Flow</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setWorkspaceView('canvas');
+            }}
+            className={`px-3 py-1 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+              workspaceView === 'canvas' || isFilteredOrSpecial
+                ? 'bg-white text-[#7D5E29] shadow-xs font-bold'
+                : 'text-[#6B665F] hover:text-[#1F1D1A]'
+            }`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5 text-[#7D5E29]" />
+            <span>Desk Canvas</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setWorkspaceView('calendar');
+            }}
+            className={`px-3 py-1 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+              workspaceView === 'calendar'
+                ? 'bg-white text-[#244A38] shadow-xs font-bold'
+                : 'text-[#6B665F] hover:text-[#1F1D1A]'
+            }`}
+          >
+            <CalendarDays className="w-3.5 h-3.5 text-[#244A38]" />
+            <span>Calendar</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setWorkspaceView('journal');
+            }}
+            className={`px-3 py-1 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+              workspaceView === 'journal'
+                ? 'bg-white text-[#58446B] shadow-xs font-bold'
+                : 'text-[#6B665F] hover:text-[#1F1D1A]'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 text-[#58446B]" />
+            <span>Journal</span>
+          </button>
         </div>
 
-        {/* Zone 3 (Right): Workspace Modes & Creation Actions */}
+        {/* Zone 3 (Right): Search, Theme, & Creation Actions */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-          {/* 2-Way Workspace Switcher: Notes vs Calendar */}
-          <div className="flex bg-black/[0.04] dark:bg-white/[0.06] p-0.5 rounded-full border border-black/[0.06] dark:border-white/[0.08] shadow-2xs">
-            <button
-              type="button"
-              onClick={() => setShowCalendar(false)}
-              className={`px-3 py-1 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
-                !showCalendar
-                  ? 'bg-white dark:bg-slate-700 text-[var(--color-text)] shadow-xs font-bold'
-                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] opacity-80 hover:opacity-100'
-              }`}
-            >
-              <FileText className={`w-3.5 h-3.5 ${!showCalendar ? 'text-[var(--color-accent)]' : ''}`} />
-              <span className="hidden sm:inline">Notes & Tasks</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowCalendar(true)}
-              className={`px-3 py-1 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
-                showCalendar
-                  ? 'bg-white dark:bg-slate-700 text-[var(--color-text)] shadow-xs font-bold'
-                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] opacity-80 hover:opacity-100'
-              }`}
-            >
-              <CalendarDays className={`w-3.5 h-3.5 ${showCalendar ? 'text-[var(--color-accent)]' : ''}`} />
-              <span className="hidden sm:inline">Calendar</span>
-            </button>
+          {/* Omni-Search Bar */}
+          <div className="relative w-36 sm:w-52 md:w-60">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
+            <input
+              ref={searchRef}
+              type="text"
+              placeholder="Search (⌘K)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-7 py-1.5 bg-black/[0.03] text-[#1F1D1A] rounded-full text-xs font-medium outline-none border border-[#E8E3D8] focus:border-[#C2531C] focus:bg-white transition-all placeholder:text-stone-400"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 cursor-pointer"
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
-          {/* Theme Palette Popover */}
+          {/* Theme Palette Switcher */}
           <ThemeSwitcher />
 
-          {/* Create Note / Checklist Buttons */}
+          {/* Creation Actions */}
           {!showTrash && (
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={() => handleCreateNote('text')}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--color-accent)] hover:opacity-95 text-white rounded-full text-xs font-bold shadow-xs transition-all active:scale-95 cursor-pointer"
-                title="Create a new note (⌘N)"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C2531C] hover:bg-[#A63E0F] text-white rounded-full text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
+                title="New Note (⌘N)"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Note</span>
@@ -316,11 +361,11 @@ const MainCanvas = () => {
               <button
                 type="button"
                 onClick={() => handleCreateNote('checklist')}
-                className="hidden md:flex items-center gap-1 px-2.5 py-1.5 bg-black/[0.03] dark:bg-white/[0.06] border border-black/[0.08] dark:border-white/[0.1] text-[var(--color-text)] hover:bg-black/[0.06] rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer"
-                title="Create a new checklist (⇧⌘N)"
+                className="hidden md:flex items-center gap-1 px-2.5 py-1.5 bg-white border border-[#E8E3D8] text-[#1F1D1A] hover:bg-[#FAF6F0] rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
+                title="New Checklist (⇧⌘N)"
               >
-                <CheckSquare className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                <span>Checklist</span>
+                <CheckSquare className="w-3.5 h-3.5 text-[#C2531C]" />
+                <span>List</span>
               </button>
             </div>
           )}
@@ -328,82 +373,75 @@ const MainCanvas = () => {
       </header>
 
       {/* =========================================================================
-          WORKSPACE CONTENT AREA: Either Calendar or Notes Canvas
+          WORKSPACE CONTENT AREA: Attention Spine, Calendar, Journal, or Desk Canvas
           ========================================================================= */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        {showCalendar ? (
+        {/* LENS 1: Daily Attention Spine (No pleasantries, Anchor, Zeigarnik working memory, Quick Capture) */}
+        {workspaceView === 'spine' && !isFilteredOrSpecial && (
+          <DailySpineView />
+        )}
+
+        {/* LENS 2: Month Calendar & Day Planner */}
+        {workspaceView === 'calendar' && !isFilteredOrSpecial && (
           <CalendarView />
-        ) : (
-          <div className="flex-1 overflow-auto bg-notebook-grid relative p-5 sm:p-7">
+        )}
+
+        {/* LENS 3: Daily Journal & Notebook by Date */}
+        {workspaceView === 'journal' && !isFilteredOrSpecial && (
+          <JournalPanel />
+        )}
+
+        {/* LENS 4: Desk Canvas (All Collections, Folder filtering, Tactile cards) */}
+        {(workspaceView === 'canvas' || isFilteredOrSpecial) && (
+          <div className="flex-1 overflow-auto bg-paper-grain relative p-5 sm:p-7">
             <div className={viewMode === 'grid' || showTrash ? 'max-w-6xl mx-auto w-full' : ''}>
               
-              {/* ===================================================================
-                  DAILY GROUNDING BANNER (Zero Emojis, Clean Typography & Focus)
-                  =================================================================== */}
-              {!showTrash && !searchQuery.trim() && (
-                <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-[var(--color-card-bg)] border border-[var(--color-card-border)] shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  {/* Left: Mindful Welcome & Status */}
-                  <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-2xl bg-[var(--color-accent-bg)] text-[var(--color-accent)] flex items-center justify-center flex-shrink-0 shadow-2xs">
-                      <greeting.Icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm sm:text-base font-bold text-[var(--color-text)]">
-                          {greeting.text}, welcome back
-                        </h3>
-                        <span className="text-xs text-[var(--color-text-muted)] font-medium">·</span>
-                        <span className="text-xs font-semibold text-[var(--color-text-muted)]">
-                          {todayFormatted}
+              {/* Macro Workspace Header with Energy Domain Filter */}
+              {!showTrash && (
+                <div className="mb-6 p-4 rounded-2xl bg-[#FDFCF9] border border-[#E8E3D8] flex flex-wrap items-center justify-between gap-4 shadow-xs">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[11px] font-mono uppercase tracking-wider text-[#C2531C] font-bold">
+                        {activeFolder ? `Collection · ${activeFolder.name}` : 'Desk Overview'}
+                      </span>
+                      {activeFolder && (
+                        <span className="text-xs text-[#6B665F]">
+                          (Theme: {activeFolder.theme || 'Caramel'})
                         </span>
-                      </div>
-                      <div className="flex items-center gap-2 mt-0.5 text-xs text-[var(--color-text-muted)]">
-                        <span>{baseNotesInView.length} {baseNotesInView.length === 1 ? 'item' : 'items'} in view</span>
-                        {totalTasks > 0 && (
-                          <>
-                            <span>•</span>
-                            <span>{completedTasks}/{totalTasks} tasks complete</span>
-                          </>
-                        )}
-                        <span>•</span>
-                        <span className="text-[var(--color-accent)] font-medium">Local storage active</span>
-                      </div>
+                      )}
                     </div>
+                    <h3 className="font-serif text-lg font-bold text-[#1F1D1A]">
+                      {activeFolder ? activeFolder.name : 'All Notes & Task Ledgers'}
+                    </h3>
                   </div>
 
-                  {/* Right: Quick Action Triggers */}
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => handleCreateNote('text')}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] text-[var(--color-text)] border border-black/[0.06] dark:border-white/[0.08] transition-all cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                      <span>Quick Note</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleCreateNote('checklist')}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] text-[var(--color-text)] border border-black/[0.06] dark:border-white/[0.08] transition-all cursor-pointer"
-                    >
-                      <CheckSquare className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                      <span>Quick Checklist</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowCalendar(true)}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] text-[var(--color-text)] border border-black/[0.06] dark:border-white/[0.08] transition-all cursor-pointer"
-                    >
-                      <CalendarDays className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                      <span>Calendar</span>
-                    </button>
+                  {/* Energy Domain Filters */}
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {ENERGY_FILTERS.map((ef) => (
+                      <button
+                        key={ef.id}
+                        type="button"
+                        onClick={() => setEnergyFilter(ef.id)}
+                        className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          energyFilter === ef.id
+                            ? 'bg-[#C2531C] text-white shadow-2xs font-bold'
+                            : 'bg-black/[0.04] text-[#6B665F] hover:text-[#1F1D1A]'
+                        }`}
+                      >
+                        {ef.dot && (
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: energyFilter === ef.id ? '#FFFFFF' : ef.dot }}
+                          />
+                        )}
+                        <span>{ef.label}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
 
-              {/* ===================================================================
-                  FILTER CHIPS, SORT, & LAYOUT CONTROLS
-                  =================================================================== */}
+              {/* Sub-Filter Chips, Sort, & Layout Controls */}
               {!showTrash && baseNotesInView.length > 0 && (
                 <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                   {/* Left: Quick Content Filter Chips */}
@@ -412,7 +450,7 @@ const MainCanvas = () => {
                       { id: 'all', label: `All (${baseNotesInView.length})` },
                       { id: 'pinned', label: `Pinned (${baseNotesInView.filter((n) => n.isPinned).length})`, disabled: baseNotesInView.filter((n) => n.isPinned).length === 0 },
                       { id: 'checklist', label: `Checklists (${baseNotesInView.filter((n) => n.type === 'checklist').length})` },
-                      { id: 'text', label: `Notes (${baseNotesInView.filter((n) => n.type === 'text').length})` },
+                      { id: 'text', label: `Manuscripts (${baseNotesInView.filter((n) => n.type === 'text').length})` },
                     ].map(({ id, label, disabled }) => (
                       <button
                         key={id}
@@ -421,8 +459,8 @@ const MainCanvas = () => {
                         onClick={() => setCardFilter(id)}
                         className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
                           cardFilter === id
-                            ? 'bg-[var(--color-accent)] text-white shadow-2xs font-bold'
-                            : 'bg-black/[0.03] dark:bg-white/[0.05] text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-black/[0.06]'
+                            ? 'bg-[#1F1D1A] text-white shadow-2xs font-bold'
+                            : 'bg-black/[0.04] text-[#6B665F] hover:text-[#1F1D1A]'
                         }`}
                       >
                         {label}
@@ -436,7 +474,7 @@ const MainCanvas = () => {
                       <button
                         type="button"
                         onClick={() => setShowSortDropdown(!showSortDropdown)}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-black/[0.03] dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.08] text-[var(--color-text)] hover:bg-black/[0.06] transition-colors cursor-pointer"
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-white border border-[#E8E3D8] text-[#1F1D1A] hover:bg-[#FAF6F0] transition-colors cursor-pointer"
                         title="Sort Notes"
                       >
                         <ArrowDownUp className="w-3 h-3 opacity-60" />
@@ -444,7 +482,7 @@ const MainCanvas = () => {
                       </button>
 
                       {showSortDropdown && (
-                        <div className="absolute right-0 top-full mt-1.5 w-36 bg-[var(--color-card-bg)] rounded-xl border border-black/10 dark:border-white/10 shadow-lg py-1 z-30 animate-fade-in">
+                        <div className="absolute right-0 top-full mt-1.5 w-36 bg-white rounded-xl border border-[#E8E3D8] shadow-lg py-1 z-30 animate-fade-in">
                           {SORT_OPTIONS.map(({ value, label, icon: Icon }) => (
                             <button
                               key={value}
@@ -453,15 +491,15 @@ const MainCanvas = () => {
                                 setSortMode(value);
                                 setShowSortDropdown(false);
                               }}
-                              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-black/[0.04] dark:hover:bg-white/[0.06] cursor-pointer flex items-center justify-between ${
-                                sortMode === value ? 'font-bold text-[var(--color-accent)]' : 'text-[var(--color-text)]'
+                              className={`w-full text-left px-3 py-1.5 text-xs hover:bg-[#FAF6F0] cursor-pointer flex items-center justify-between ${
+                                sortMode === value ? 'font-bold text-[#C2531C]' : 'text-[#1F1D1A]'
                               }`}
                             >
                               <div className="flex items-center gap-2">
                                 <Icon className="w-3 h-3 opacity-60" />
                                 <span>{label}</span>
                               </div>
-                              {sortMode === value && <Check className="w-3 h-3 text-[var(--color-accent)]" />}
+                              {sortMode === value && <Check className="w-3 h-3 text-[#C2531C]" />}
                             </button>
                           ))}
                         </div>
@@ -469,14 +507,14 @@ const MainCanvas = () => {
                     </div>
 
                     {/* View Switcher: Neat Grid vs Freeform Board */}
-                    <div className="flex bg-black/[0.04] dark:bg-white/[0.06] p-0.5 rounded-full border border-black/[0.06] dark:border-white/[0.08]">
+                    <div className="flex bg-black/[0.04] p-0.5 rounded-full border border-[#E8E3D8]">
                       <button
                         type="button"
                         onClick={() => setViewMode('grid')}
                         className={`p-1.5 rounded-full transition-all cursor-pointer ${
                           viewMode === 'grid'
-                            ? 'bg-white dark:bg-slate-700 text-[var(--color-accent)] shadow-2xs'
-                            : 'text-slate-400 hover:text-slate-600'
+                            ? 'bg-white text-[#C2531C] shadow-2xs'
+                            : 'text-stone-400 hover:text-stone-600'
                         }`}
                         title="Neat Grid View (G)"
                       >
@@ -487,10 +525,10 @@ const MainCanvas = () => {
                         onClick={() => setViewMode('board')}
                         className={`p-1.5 rounded-full transition-all cursor-pointer ${
                           viewMode === 'board'
-                            ? 'bg-white dark:bg-slate-700 text-[var(--color-accent)] shadow-2xs'
-                            : 'text-slate-400 hover:text-slate-600'
+                            ? 'bg-white text-[#C2531C] shadow-2xs'
+                            : 'text-stone-400 hover:text-stone-600'
                         }`}
-                        title="Freeform Canvas Board (B) - drag notes anywhere"
+                        title="Freeform Board (B) - drag items anywhere"
                       >
                         <Layers className="w-3.5 h-3.5" />
                       </button>
@@ -499,17 +537,15 @@ const MainCanvas = () => {
                 </div>
               )}
 
-              {/* ===================================================================
-                  MEMORY BOX (TRASH) BANNER
-                  =================================================================== */}
+              {/* Memory Box Banner */}
               {showTrash && (
-                <div className="mb-6 p-4 rounded-2xl bg-[var(--color-card-bg)] border border-[var(--color-card-border)] flex items-center justify-between shadow-xs">
+                <div className="mb-6 p-4 rounded-2xl bg-white border border-[#E8E3D8] flex items-center justify-between shadow-xs">
                   <div className="flex items-center gap-3">
-                    <Trash2 className="w-6 h-6 text-rose-500" />
+                    <Trash2 className="w-6 h-6 text-rose-600" />
                     <div>
-                      <h3 className="text-sm font-bold text-[var(--color-text)]">Memory Box</h3>
-                      <p className="text-xs text-[var(--color-text-muted)]">
-                        Deleted notes are retained locally. Items older than 30 days are automatically purged.
+                      <h3 className="font-serif text-sm font-bold text-[#1F1D1A]">Memory Box</h3>
+                      <p className="text-xs text-[#6B665F]">
+                        Deleted items are stored privately on this device. Items older than 30 days are automatically purged.
                       </p>
                     </div>
                   </div>
@@ -519,7 +555,7 @@ const MainCanvas = () => {
                       onClick={() => {
                         if (confirm('Permanently delete all notes in Memory Box?')) emptyTrash();
                       }}
-                      className="px-3 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                      className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer shadow-xs"
                     >
                       Empty Box
                     </button>
@@ -527,71 +563,65 @@ const MainCanvas = () => {
                 </div>
               )}
 
-              {/* ===================================================================
-                  EMPTY STATE (Clean Typography, No Emojis)
-                  =================================================================== */}
+              {/* High-Contrast Empty States (Zero Emojis, No Washing Out) */}
               {filteredNotes.length === 0 && (
                 <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
-                  <div className="relative mb-4 flex items-center justify-center opacity-80">
+                  <div className="relative mb-4 flex items-center justify-center">
                     {showTrash ? (
-                      <MemoryBoxDoodle className="w-20 h-20" />
+                      <MemoryBoxDoodle className="w-24 h-24" />
                     ) : searchQuery.trim() ? (
-                      <CloudDoodle className="w-18 h-14" />
+                      <CloudDoodle className="w-24 h-20" />
                     ) : (
-                      <EmptyNotesDoodle className="w-20 h-20" />
+                      <EmptyNotesDoodle className="w-24 h-24" />
                     )}
                   </div>
-                  <h3 className="text-sm sm:text-base font-bold text-[var(--color-text)] mb-1">
+                  <h3 className="font-serif text-base font-bold text-[#1F1D1A] mb-1">
                     {showTrash
                       ? 'Memory Box is empty'
                       : searchQuery.trim()
-                      ? 'No matching items found'
+                      ? 'No matching notes found'
                       : activeFolder
                       ? `No items in ${activeFolder.name} yet`
-                      : 'Your workspace is clear'}
+                      : 'Your desk is clear'}
                   </h3>
-                  <p className="text-xs text-[var(--color-text-muted)] max-w-xs leading-relaxed mb-5">
+                  <p className="text-xs text-[#6B665F] max-w-xs leading-relaxed mb-5">
                     {showTrash
-                      ? 'Deleted items will appear here.'
+                      ? 'Deleted notes will be preserved here for 30 days.'
                       : searchQuery.trim()
-                      ? 'Try another search keyword or clear filters.'
-                      : 'Create a note or checklist to start planning.'}
+                      ? 'Try another keyword or clear search filters.'
+                      : 'Capture a manuscript note or structured task ledger to begin.'}
                   </p>
                   {!showTrash && !searchQuery.trim() && (
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => handleCreateNote('text')}
-                        className="px-4 py-2 bg-[var(--color-accent)] text-white rounded-full text-xs font-bold shadow-xs hover:opacity-95 transition-all cursor-pointer"
+                        className="px-4 py-2 bg-[#C2531C] text-white rounded-full text-xs font-bold shadow-xs hover:bg-[#A63E0F] transition-all cursor-pointer"
                       >
                         + Create Note
                       </button>
                       <button
                         type="button"
                         onClick={() => handleCreateNote('checklist')}
-                        className="px-4 py-2 bg-black/[0.04] dark:bg-white/[0.06] text-[var(--color-text)] border border-black/10 dark:border-white/10 rounded-full text-xs font-bold hover:bg-black/[0.08] transition-all cursor-pointer"
+                        className="px-4 py-2 bg-white text-[#1F1D1A] border border-[#E8E3D8] rounded-full text-xs font-bold hover:bg-[#FAF6F0] transition-all cursor-pointer"
                       >
-                        + Checklist
+                        + Task Ledger
                       </button>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* ===================================================================
-                  NOTES DISPLAY (Grid vs Freeform Board)
-                  =================================================================== */}
+              {/* Notes Display: Grid vs Freeform Board */}
               {sortedNotes.length > 0 && (
                 viewMode === 'grid' || showTrash ? (
                   <div className="space-y-6">
                     {/* Pinned Section */}
                     {pinnedNotes.length > 0 && !showTrash && cardFilter !== 'checklist' && (
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--color-text)] uppercase tracking-wider">
-                            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-                            <span>Pinned for Focus ({pinnedNotes.length})</span>
-                          </div>
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#1F1D1A] uppercase tracking-wider font-mono">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                          <span>Pinned for Focus ({pinnedNotes.length})</span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                           {pinnedNotes.map((note) => (
@@ -606,8 +636,8 @@ const MainCanvas = () => {
                       <div className="space-y-3">
                         {pinnedNotes.length > 0 && !showTrash && cardFilter === 'all' && (
                           <div className="flex items-center justify-between pt-2">
-                            <span className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider">
-                              Notes & Tasks ({unpinnedNotes.length})
+                            <span className="text-xs font-mono font-bold text-[#6B665F] uppercase tracking-wider">
+                              Manuscripts &amp; Task Ledgers ({unpinnedNotes.length})
                             </span>
                           </div>
                         )}
@@ -621,13 +651,13 @@ const MainCanvas = () => {
                             <button
                               type="button"
                               onClick={() => handleCreateNote('text')}
-                              className="min-h-[200px] rounded-2xl border-2 border-dashed border-black/10 dark:border-white/10 hover:border-[var(--color-accent)] p-6 flex flex-col items-center justify-center text-center transition-all group hover:bg-black/[0.02] dark:hover:bg-white/[0.02] cursor-pointer"
+                              className="min-h-[200px] rounded-2xl border-2 border-dashed border-[#E8E3D8] hover:border-[#C2531C] p-6 flex flex-col items-center justify-center text-center transition-all group hover:bg-[#FAF6F0] cursor-pointer"
                             >
-                              <div className="w-9 h-9 rounded-full bg-[var(--color-accent-bg)] text-[var(--color-accent)] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-2xs">
+                              <div className="w-9 h-9 rounded-full bg-[#FDF8F5] text-[#C2531C] border border-[#F2DDD1] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-2xs">
                                 <Plus className="w-4 h-4" />
                               </div>
-                              <h4 className="font-semibold text-xs text-[var(--color-text)]">New Note or List</h4>
-                              <p className="text-[11px] text-[var(--color-text-muted)] mt-0.5">Click to write or plan</p>
+                              <h4 className="font-serif font-semibold text-sm text-[#1F1D1A]">New Manuscript or Ledger</h4>
+                              <p className="text-[11px] text-[#6B665F] mt-0.5">Click to write or plan</p>
                             </button>
                           )}
                         </div>

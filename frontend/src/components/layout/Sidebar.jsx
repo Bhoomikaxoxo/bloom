@@ -6,7 +6,8 @@ import EmojiPickerPopover from '../ui/EmojiPickerPopover';
 import DeviceStorageModal from '../ui/DeviceStorageModal';
 import {
   Plus, Star, FileText, Trash2, HelpCircle, CheckSquare,
-  CalendarDays, ShieldCheck, BookOpen, Sparkles
+  CalendarDays, ShieldCheck, Compass, LayoutGrid, BookOpen,
+  X, Check, Flame, ChevronRight
 } from 'lucide-react';
 
 const Sidebar = ({ onCloseMobile }) => {
@@ -18,15 +19,16 @@ const Sidebar = ({ onCloseMobile }) => {
     showTrash,
     showFavorites,
     showCalendar,
-    setShowCalendar,
+    workspaceView,
+    setWorkspaceView,
+    setAestheticTheme,
     calendarEvents = [],
     folderThemes,
-    journalViewMode,
-    setJournalViewMode,
     setActiveFolderId,
     setActiveTagId,
     setShowTrash,
     setShowFavorites,
+    setShowCalendar,
     addFolder,
     deleteFolder,
     updateFolder,
@@ -34,6 +36,7 @@ const Sidebar = ({ onCloseMobile }) => {
     addTag,
     deleteTag,
     notes,
+    followThroughStreak = 1,
   } = useSlateStore();
 
   const [newFolderName, setNewFolderName] = useState('');
@@ -41,7 +44,7 @@ const Sidebar = ({ onCloseMobile }) => {
   const [showAddFolder, setShowAddFolder] = useState(false);
 
   const [newTagName, setNewTagName] = useState('');
-  const [newTagColor, setNewTagColor] = useState('lavender');
+  const [newTagColor, setNewTagColor] = useState('pink');
   const [showAddTag, setShowAddTag] = useState(false);
   const [showStorageModal, setShowStorageModal] = useState(false);
 
@@ -62,13 +65,6 @@ const Sidebar = ({ onCloseMobile }) => {
   const favoritesCount = notes.filter((n) => n.isFavorite && n.deletedAt === null).length;
   const deletedNotesCount = notes.filter((n) => n.deletedAt !== null).length;
 
-  const allChecklistItems = notes
-    .filter((n) => n.deletedAt === null && n.type === 'checklist')
-    .flatMap((n) => n.checklist || []);
-  const completedTasksCount = allChecklistItems.filter((i) => i.done).length;
-  const totalTasksCount = allChecklistItems.length;
-  const tasksPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
-
   const handleAddFolder = (e) => {
     e.preventDefault();
     if (newFolderName.trim()) {
@@ -88,122 +84,147 @@ const Sidebar = ({ onCloseMobile }) => {
   };
 
   const selectView = (type, id = null) => {
-    if (type === 'all') {
+    if (type === 'spine') {
+      setWorkspaceView('spine');
       setActiveFolderId(null);
       setActiveTagId(null);
       setShowTrash(false);
       setShowFavorites(false);
-      setShowCalendar(false);
-      setJournalViewMode('notes');
-    } else if (type === 'favorites') {
-      setShowFavorites(true);
-      setShowCalendar(false);
-      setShowTrash(false);
+    } else if (type === 'canvas') {
+      setWorkspaceView('canvas');
       setActiveFolderId(null);
       setActiveTagId(null);
-      setJournalViewMode('notes');
+      setShowTrash(false);
+      setShowFavorites(false);
     } else if (type === 'calendar') {
-      setShowCalendar(true);
+      setWorkspaceView('calendar');
       setShowTrash(false);
       setShowFavorites(false);
+    } else if (type === 'favorites') {
+      setWorkspaceView('canvas');
+      setShowFavorites(true);
+      setShowTrash(false);
+      setActiveFolderId(null);
+      setActiveTagId(null);
     } else if (type === 'folder') {
       const folder = folders.find((f) => f.id === id);
       const folderTheme = folder?.theme || folderThemes?.[id];
       setActiveFolderId(id);
-      if (folderTheme) {
+      setActiveTagId(null);
+      setShowTrash(false);
+      setShowFavorites(false);
+      setWorkspaceView('canvas');
+      if (folderTheme && setAestheticTheme) {
         setAestheticTheme(folderTheme);
       }
-      setShowCalendar(false);
-      setShowTrash(false);
-      setShowFavorites(false);
-      setJournalViewMode('notes');
     } else if (type === 'tag') {
       setActiveTagId(id);
-      setShowCalendar(false);
+      setActiveFolderId(null);
       setShowTrash(false);
       setShowFavorites(false);
-      setJournalViewMode('notes');
+      setWorkspaceView('canvas');
     } else if (type === 'trash') {
       setShowTrash(true);
-      setShowCalendar(false);
       setShowFavorites(false);
-      setJournalViewMode('notes');
+      setWorkspaceView('canvas');
     }
     if (onCloseMobile) onCloseMobile();
   };
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-[var(--color-sidebar-bg)] border-r border-black/[0.08] dark:border-white/[0.08] p-4 flex flex-col h-screen overflow-y-auto select-none transition-colors">
-      {/* Brand Header */}
-      <div className="px-1 pt-1 pb-4 mb-3 border-b border-black/[0.08] dark:border-white/[0.08] flex items-center justify-between">
-        <BloomLogo />
+    <aside className="w-64 flex-shrink-0 bg-[#F8F6F1] dark:bg-[#1E1B18] border-r border-[#E8E3D8] dark:border-[#38332E] p-4 flex flex-col h-screen overflow-y-auto select-none transition-colors">
+      {/* 1. Bespoke Brand Logo Header */}
+      <div className="px-1 pt-1 pb-4 mb-3 border-b border-[#E8E3D8] dark:border-[#38332E]">
+        <BloomLogo onClick={() => selectView('spine')} />
       </div>
 
-      {/* Main Views (All Notes, Favorites, Calendar & Planner) */}
+      {/* 2. Core Cognitive Lenses (Attention Spine / Canvas / Calendar) */}
       <div className="mb-4 space-y-1">
+        {/* Daily Flow (Attention Spine) */}
         <button
-          onClick={() => selectView('all')}
+          onClick={() => selectView('spine')}
           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
-            activeFolderId === null && !activeTagId && !showTrash && !showFavorites && !showCalendar
-              ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
-              : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+            workspaceView === 'spine' && !showTrash && !showFavorites && !activeFolderId && !activeTagId
+              ? 'bg-[#FDF4EF] text-[#C2531C] font-bold shadow-2xs border border-[#F2DDD1]'
+              : 'text-[#1F1D1A] dark:text-[#E8E3D8] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
           }`}
         >
           <div className="flex items-center gap-2.5">
-            <FileText className="w-4 h-4 opacity-70" />
-            <span>All Notes & Tasks</span>
+            <Compass className="w-4 h-4 text-[#C2531C]" />
+            <span>Daily Flow</span>
           </div>
-          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] opacity-75">
+          <span className="flex items-center gap-1 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-[#FAF5EE] text-[#C2531C] border border-[#EBDCBF]">
+            <Flame className="w-2.5 h-2.5 text-[#C2531C] fill-[#C2531C]" />
+            {followThroughStreak}d
+          </span>
+        </button>
+
+        {/* Desk Canvas (Macro View of all Notes & Checklists) */}
+        <button
+          onClick={() => selectView('canvas')}
+          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+            workspaceView === 'canvas' && !showTrash && !showFavorites && !activeFolderId && !activeTagId
+              ? 'bg-[#FAF5EE] text-[#7D5E29] font-bold shadow-2xs border border-[#EBDCBF]'
+              : 'text-[#1F1D1A] dark:text-[#E8E3D8] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <LayoutGrid className="w-4 h-4 opacity-75" />
+            <span>Desk Canvas</span>
+          </div>
+          <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-black/[0.05] dark:bg-white/[0.08] opacity-75">
             {activeNotesCount}
           </span>
         </button>
 
+        {/* Calendar & Planner */}
+        <button
+          onClick={() => selectView('calendar')}
+          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+            workspaceView === 'calendar'
+              ? 'bg-[#F0F5F2] text-[#244A38] font-bold shadow-2xs border border-[#C7D9CF]'
+              : 'text-[#1F1D1A] dark:text-[#E8E3D8] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <CalendarDays className="w-4 h-4 text-[#244A38]" />
+            <span>Calendar &amp; Planner</span>
+          </div>
+          {calendarEvents.length > 0 && (
+            <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-black/[0.05] dark:bg-white/[0.08] opacity-75">
+              {calendarEvents.length}
+            </span>
+          )}
+        </button>
+
+        {/* Pinned & Favorites */}
         <button
           onClick={() => selectView('favorites')}
           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
             showFavorites
-              ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
-              : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+              ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 font-bold shadow-2xs border border-amber-200'
+              : 'text-[#1F1D1A] dark:text-[#E8E3D8] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
           }`}
         >
           <div className="flex items-center gap-2.5">
             <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
             <span>Favorites</span>
           </div>
-          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] opacity-75">
+          <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-black/[0.05] dark:bg-white/[0.08] opacity-75">
             {favoritesCount}
           </span>
         </button>
-
-        <button
-          onClick={() => selectView('calendar')}
-          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
-            showCalendar
-              ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
-              : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            <CalendarDays className="w-4 h-4 text-[var(--color-accent)]" />
-            <span>Calendar & Planner</span>
-          </div>
-          {calendarEvents.length > 0 && (
-            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] opacity-75">
-              {calendarEvents.length}
-            </span>
-          )}
-        </button>
       </div>
 
-      {/* Folders Section with Theme World Assignment */}
+      {/* 3. Folders & Worlds (Each Folder With Its Own Color/Theme) */}
       <div className="mb-5">
         <div className="flex items-center justify-between px-2 mb-1.5">
-          <span className="text-[11px] font-bold text-[var(--color-text-muted)] tracking-wider uppercase">
-            Folders & Worlds
+          <span className="text-[11px] font-sans font-bold text-[#6B665F] tracking-wider uppercase">
+            Folders &amp; Worlds
           </span>
           <button
             onClick={() => setShowAddFolder(!showAddFolder)}
-            className="p-1 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+            className="p-1 rounded-md text-[#6B665F] hover:text-[#C2531C] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
             title="Create Folder"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -212,25 +233,25 @@ const Sidebar = ({ onCloseMobile }) => {
 
         {/* Add Folder Form */}
         {showAddFolder && (
-          <form onSubmit={handleAddFolder} className="mb-2.5 p-2 bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 rounded-xl shadow-xs space-y-2">
+          <form onSubmit={handleAddFolder} className="mb-2.5 p-2.5 bg-white dark:bg-slate-800 border border-[#E8E3D8] dark:border-[#38332E] rounded-xl shadow-xs space-y-2">
             <input
               type="text"
               placeholder="Folder name…"
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               autoFocus
-              className="w-full text-xs bg-transparent outline-none px-1 text-[var(--color-text)] placeholder:text-slate-400"
+              className="w-full text-xs bg-transparent outline-none px-1 text-[#1F1D1A] dark:text-[#E8E3D8] placeholder:text-stone-400"
             />
             <div className="flex items-center justify-between pt-1 border-t border-black/5 dark:border-white/5">
-              <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Theme:</span>
+              <span className="text-[10px] font-medium text-[#6B665F]">Color:</span>
               <div className="flex items-center gap-1.5">
                 {THEMES.map((t) => (
                   <button
                     key={t.id}
                     type="button"
                     onClick={() => setNewFolderTheme(t.id)}
-                    className={`w-4 h-4 rounded-full transition-transform cursor-pointer ${
-                      newFolderTheme === t.id ? 'scale-125 ring-2 ring-black/30 dark:ring-white/50' : 'opacity-70 hover:opacity-100'
+                    className={`w-3.5 h-3.5 rounded-full transition-transform cursor-pointer ${
+                      newFolderTheme === t.id ? 'scale-125 ring-2 ring-black/40' : 'opacity-70 hover:opacity-100'
                     }`}
                     style={{ backgroundColor: t.accentColor }}
                     title={t.name}
@@ -242,26 +263,26 @@ const Sidebar = ({ onCloseMobile }) => {
               <button
                 type="button"
                 onClick={() => setShowAddFolder(false)}
-                className="px-2 py-1 text-[11px] text-slate-500 hover:text-slate-700"
+                className="px-2 py-0.5 text-[11px] text-stone-500 hover:text-stone-700"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!newFolderName.trim()}
-                className="px-2.5 py-1 bg-[var(--color-accent)] text-white text-[11px] font-bold rounded-lg hover:opacity-90 disabled:opacity-40"
+                className="px-2.5 py-0.5 bg-[#C2531C] text-white text-[11px] font-bold rounded-lg hover:opacity-90 disabled:opacity-40 cursor-pointer"
               >
-                Add Folder
+                Add
               </button>
             </div>
           </form>
         )}
 
-        {/* Folder List */}
+        {/* Folder List with Custom Theme Swatch */}
         <div className="space-y-0.5">
           {folders.map((folder) => {
             const count = notes.filter((n) => n.folderId === folder.id && n.deletedAt === null).length;
-            const isSelected = activeFolderId === folder.id && !showTrash && !showFavorites;
+            const isSelected = activeFolderId === folder.id && !showTrash && !showFavorites && workspaceView === 'canvas';
             const assignedThemeId = folder.theme || folderThemes?.[folder.id] || 'caramel';
             const assignedTheme = THEMES.find((t) => t.id === assignedThemeId) || THEMES[0];
 
@@ -270,8 +291,8 @@ const Sidebar = ({ onCloseMobile }) => {
                 key={folder.id}
                 className={`group relative flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
-                    : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+                    ? 'bg-white dark:bg-[#282420] text-[#1F1D1A] dark:text-[#E8E3D8] font-bold shadow-xs border border-[#E8E3D8] dark:border-[#38332E]'
+                    : 'text-[#1F1D1A] dark:text-[#E8E3D8] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
                 }`}
                 onClick={() => selectView('folder', folder.id)}
               >
@@ -294,14 +315,14 @@ const Sidebar = ({ onCloseMobile }) => {
                       }}
                       className="w-3.5 h-3.5 rounded-full border border-black/15 dark:border-white/20 transition-transform hover:scale-125 cursor-pointer shadow-xs"
                       style={{ backgroundColor: assignedTheme.accentColor }}
-                      title={`Folder Theme: ${assignedTheme.name} (Click to change)`}
+                      title={`Theme: ${assignedTheme.name} (Click to change)`}
                     />
 
                     {/* Folder Theme Switcher Popover */}
                     {themeMenuFolderId === folder.id && (
                       <div
                         ref={themeMenuRef}
-                        className="absolute right-0 top-full mt-1.5 p-2 bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 rounded-xl shadow-lg z-50 flex items-center gap-1.5 animate-scale-in"
+                        className="absolute right-0 top-full mt-1.5 p-2 bg-white dark:bg-slate-800 border border-[#E8E3D8] rounded-xl shadow-lg z-50 flex items-center gap-1.5 animate-scale-in"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {THEMES.map((t) => (
@@ -310,11 +331,12 @@ const Sidebar = ({ onCloseMobile }) => {
                             type="button"
                             onClick={() => {
                               setFolderTheme(folder.id, t.id);
-                              setAestheticTheme(t.id);
+                              updateFolder(folder.id, { theme: t.id });
+                              if (setAestheticTheme) setAestheticTheme(t.id);
                               setThemeMenuFolderId(null);
                             }}
                             className={`w-4 h-4 rounded-full transition-transform hover:scale-125 cursor-pointer ${
-                              assignedThemeId === t.id ? 'scale-125 ring-2 ring-black/40 dark:ring-white/60' : 'opacity-70 hover:opacity-100'
+                              assignedThemeId === t.id ? 'scale-125 ring-2 ring-black/40' : 'opacity-70 hover:opacity-100'
                             }`}
                             style={{ backgroundColor: t.accentColor }}
                             title={t.name}
@@ -324,7 +346,7 @@ const Sidebar = ({ onCloseMobile }) => {
                     )}
                   </div>
 
-                  <span className="text-[11px] opacity-60 px-1 py-0.5 rounded-full">
+                  <span className="text-[11px] font-mono opacity-60 px-1 py-0.2 rounded-full">
                     {count}
                   </span>
 
@@ -335,7 +357,7 @@ const Sidebar = ({ onCloseMobile }) => {
                         deleteFolder(folder.id);
                       }
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-red-500 rounded transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 p-0.5 text-stone-400 hover:text-red-500 rounded transition-opacity"
                     title="Delete folder"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -347,34 +369,34 @@ const Sidebar = ({ onCloseMobile }) => {
         </div>
       </div>
 
-      {/* Colorful Tags Section */}
+      {/* 4. Tags Section (Refined, Non-Clunky Inline Capture) */}
       <div className="mb-5">
         <div className="flex items-center justify-between px-2 mb-1.5">
-          <span className="text-[11px] font-bold text-[var(--color-text-muted)] tracking-wider uppercase">
+          <span className="text-[11px] font-sans font-bold text-[#6B665F] tracking-wider uppercase">
             Tags
           </span>
           <button
             onClick={() => setShowAddTag(!showAddTag)}
-            className="p-1 rounded-md text-[var(--color-text-muted)] hover:text-[var(--color-accent)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+            className="p-1 rounded-md text-[#6B665F] hover:text-[#C2531C] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
             title="Create Tag"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Add Tag Form with Color Picker */}
+        {/* Refined Add Tag Form */}
         {showAddTag && (
-          <form onSubmit={handleAddTag} className="mb-2.5 p-2 bg-white dark:bg-slate-800 border border-black/10 dark:border-white/10 rounded-xl shadow-xs space-y-2">
+          <form onSubmit={handleAddTag} className="mb-2.5 p-2 bg-white dark:bg-slate-800 border border-[#E8E3D8] rounded-xl shadow-xs space-y-2">
             <input
               type="text"
               placeholder="Tag name…"
               value={newTagName}
               onChange={(e) => setNewTagName(e.target.value)}
               autoFocus
-              className="w-full text-xs bg-transparent outline-none px-1 text-[var(--color-text)] placeholder:text-slate-400"
+              className="w-full text-xs bg-transparent outline-none px-1 text-[#1F1D1A] placeholder:text-stone-400"
             />
             <div className="flex items-center justify-between pt-1 border-t border-black/5 dark:border-white/5">
-              <span className="text-[10px] font-medium text-[var(--color-text-muted)]">Color:</span>
+              <span className="text-[10px] font-medium text-[#6B665F]">Color:</span>
               <div className="flex items-center gap-1.5">
                 {['pink', 'lavender', 'mint', 'amber', 'sky'].map((colorName) => {
                   const item = TAG_COLOR_MAP[colorName];
@@ -384,7 +406,7 @@ const Sidebar = ({ onCloseMobile }) => {
                       type="button"
                       onClick={() => setNewTagColor(colorName)}
                       className={`w-3.5 h-3.5 rounded-full transition-transform cursor-pointer ${
-                        newTagColor === colorName ? 'scale-125 ring-2 ring-black/30 dark:ring-white/50' : 'opacity-70 hover:opacity-100'
+                        newTagColor === colorName ? 'scale-125 ring-2 ring-black/40' : 'opacity-70 hover:opacity-100'
                       }`}
                       style={{ backgroundColor: item.dot }}
                       title={colorName}
@@ -397,35 +419,35 @@ const Sidebar = ({ onCloseMobile }) => {
               <button
                 type="button"
                 onClick={() => setShowAddTag(false)}
-                className="px-2 py-1 text-[11px] text-slate-500 hover:text-slate-700"
+                className="px-2 py-0.5 text-[11px] text-stone-500 hover:text-stone-700"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={!newTagName.trim()}
-                className="px-2.5 py-1 bg-[var(--color-accent)] text-white text-[11px] font-bold rounded-lg hover:opacity-90 disabled:opacity-40"
+                className="px-2.5 py-0.5 bg-[#C2531C] text-white text-[11px] font-bold rounded-lg hover:opacity-90 disabled:opacity-40 cursor-pointer"
               >
-                Add Tag
+                Add
               </button>
             </div>
           </form>
         )}
 
-        {/* Colorful Tag Badges */}
+        {/* Tag Badges */}
         <div className="flex flex-wrap gap-1.5 px-1">
           {tags.map((tag) => {
             const count = notes.filter((n) => n.tags?.includes(tag.id) && n.deletedAt === null).length;
-            const isSelected = activeTagId === tag.id && !showTrash && !showFavorites;
+            const isSelected = activeTagId === tag.id && !showTrash && !showFavorites && workspaceView === 'canvas';
             const styleConfig = TAG_COLOR_MAP[tag.color] || TAG_COLOR_MAP.lavender;
 
             return (
               <button
                 key={tag.id}
                 onClick={() => selectView('tag', tag.id)}
-                className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all cursor-pointer ${
+                className={`group flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-[var(--color-accent)] text-white border-[var(--color-accent)] shadow-xs'
+                    ? 'bg-[#C2531C] text-white border-[#C2531C] shadow-xs font-bold'
                     : styleConfig.badge
                 }`}
               >
@@ -434,7 +456,7 @@ const Sidebar = ({ onCloseMobile }) => {
                   style={{ backgroundColor: isSelected ? '#FFFFFF' : styleConfig.dot }}
                 />
                 <span>#{tag.name}</span>
-                <span className={`text-[10px] px-1 rounded-full ${isSelected ? 'bg-white/20' : 'bg-black/5 dark:bg-white/10'}`}>
+                <span className={`text-[10px] px-1 rounded-full font-mono ${isSelected ? 'bg-white/20' : 'bg-black/5 dark:bg-white/10'}`}>
                   {count}
                 </span>
                 <span
@@ -453,45 +475,18 @@ const Sidebar = ({ onCloseMobile }) => {
         </div>
       </div>
 
-      {/* Spacer to push controls down */}
+      {/* Spacer to push controls to bottom */}
       <div className="flex-1" />
 
-      {/* Bottom Progress & Memory Box */}
-      <div className="pt-3 border-t border-black/[0.08] dark:border-white/[0.08] space-y-3">
-        {/* Daily Tasks Progress */}
-        {totalTasksCount > 0 && (
-          <div className="p-3 rounded-xl bg-black/[0.03] dark:bg-white/[0.04] border border-black/[0.05] dark:border-white/[0.06]">
-            <div className="flex justify-between items-center text-xs font-semibold mb-1.5">
-              <div className="flex items-center gap-1.5 text-[var(--color-text)]">
-                <CheckSquare className="w-3.5 h-3.5 text-[var(--color-accent)]" />
-                <span>Tasks Done</span>
-              </div>
-              <span className="text-[11px] font-bold text-[var(--color-accent)]">
-                {completedTasksCount}/{totalTasksCount} ({tasksPercent}%)
-              </span>
-            </div>
-            <div className="w-full h-1.5 bg-black/[0.06] dark:bg-white/[0.1] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[var(--color-accent)] rounded-full transition-all duration-300"
-                style={{ width: `${tasksPercent}%` }}
-              />
-            </div>
-            {tasksPercent === 100 && (
-              <div className="flex items-center gap-1 mt-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                <Sparkles className="w-3 h-3" />
-                <span>All tasks completed for today</span>
-              </div>
-            )}
-          </div>
-        )}
-
+      {/* 5. Memory Box, Local Storage Health, & Shortcuts */}
+      <div className="pt-3 border-t border-[#E8E3D8] dark:border-[#38332E] space-y-2">
         {/* Memory Box / Trash */}
         <button
           onClick={() => selectView('trash')}
           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
             showTrash
-              ? 'bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-bold'
-              : 'text-[var(--color-text)] opacity-70 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+              ? 'bg-rose-100 text-rose-800 font-bold border border-rose-200'
+              : 'text-[#1F1D1A] opacity-70 hover:opacity-100 hover:bg-black/[0.04]'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -499,34 +494,34 @@ const Sidebar = ({ onCloseMobile }) => {
             <span>Memory Box</span>
           </div>
           {deletedNotesCount > 0 && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-rose-200 dark:bg-rose-900/60 text-rose-800 dark:text-rose-200">
+            <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-rose-200 text-rose-800">
               {deletedNotesCount}
             </span>
           )}
         </button>
 
-        {/* Device Storage & Privacy */}
+        {/* Device Local-First Storage (Private to this machine) */}
         <button
           onClick={() => setShowStorageModal(true)}
-          className="w-full text-left px-3 py-1.5 rounded-lg text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] flex items-center justify-between cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
+          className="w-full text-left px-3 py-1.5 rounded-lg text-[11px] text-[#6B665F] hover:text-[#1F1D1A] flex items-center justify-between cursor-pointer opacity-75 hover:opacity-100 transition-opacity"
         >
           <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>Device Storage</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+            <span>On-Device Storage</span>
           </div>
-          <span className="text-[10px] font-medium opacity-60">Private</span>
+          <span className="text-[10px] font-mono opacity-60">30d auto-purge</span>
         </button>
 
-        {/* Keyboard Shortcuts Hint */}
+        {/* Keyboard Shortcuts */}
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('show-shortcuts'))}
-          className="w-full text-left px-3 py-1.5 rounded-lg text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] flex items-center justify-between cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
+          className="w-full text-left px-3 py-1.5 rounded-lg text-[11px] text-[#6B665F] hover:text-[#1F1D1A] flex items-center justify-between cursor-pointer opacity-75 hover:opacity-100 transition-opacity"
         >
           <div className="flex items-center gap-1.5">
             <HelpCircle className="w-3.5 h-3.5" />
             <span>Shortcuts</span>
           </div>
-          <kbd className="px-1.5 py-0.5 rounded bg-black/[0.06] dark:bg-white/[0.08] text-[10px] font-mono">
+          <kbd className="px-1.5 py-0.2 rounded bg-black/[0.06] text-[10px] font-mono">
             ⌘/
           </kbd>
         </button>
