@@ -3,7 +3,8 @@ import useSlateStore from '../../store/useSlateStore';
 import { THEMES, TAG_COLOR_MAP } from '../../utils/theme-config';
 import BloomLogo from '../ui/BloomLogo';
 import EmojiPickerPopover from '../ui/EmojiPickerPopover';
-import { Plus, Star, FileText, Trash2, HelpCircle, CheckSquare, CalendarDays } from 'lucide-react';
+import DeviceStorageModal from '../ui/DeviceStorageModal';
+import { Plus, Star, FileText, Trash2, HelpCircle, CheckSquare, CalendarDays, ShieldCheck } from 'lucide-react';
 
 const Sidebar = ({ onCloseMobile }) => {
   const {
@@ -37,6 +38,7 @@ const Sidebar = ({ onCloseMobile }) => {
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('lavender');
   const [showAddTag, setShowAddTag] = useState(false);
+  const [showStorageModal, setShowStorageModal] = useState(false);
 
   const [themeMenuFolderId, setThemeMenuFolderId] = useState(null);
   const themeMenuRef = useRef(null);
@@ -471,6 +473,18 @@ const Sidebar = ({ onCloseMobile }) => {
           )}
         </button>
 
+        {/* Device Storage & Privacy */}
+        <button
+          onClick={() => setShowStorageModal(true)}
+          className="w-full text-left px-3 py-1.5 rounded-lg text-[11px] text-[var(--color-text-muted)] hover:text-[var(--color-text)] flex items-center justify-between cursor-pointer opacity-70 hover:opacity-100 transition-opacity"
+        >
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>Device Storage</span>
+          </div>
+          <span className="text-[10px] font-medium opacity-60">Private</span>
+        </button>
+
         {/* Keyboard Shortcuts Hint */}
         <button
           onClick={() => window.dispatchEvent(new CustomEvent('show-shortcuts'))}
@@ -485,6 +499,11 @@ const Sidebar = ({ onCloseMobile }) => {
           </kbd>
         </button>
       </div>
+
+      <DeviceStorageModal
+        isOpen={showStorageModal}
+        onClose={() => setShowStorageModal(false)}
+      />
     </aside>
   );
 };

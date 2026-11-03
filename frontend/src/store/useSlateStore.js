@@ -1,6 +1,22 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// Request persistent browser storage so local device data is never evicted
+if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.persist) {
+  navigator.storage.persist().catch(() => {});
+}
+
+// Seamlessly migrate legacy storage key if present
+if (typeof window !== 'undefined') {
+  try {
+    if (!localStorage.getItem('bloom-workspace-storage') && localStorage.getItem('slate-notes-storage')) {
+      localStorage.setItem('bloom-workspace-storage', localStorage.getItem('slate-notes-storage'));
+    }
+  } catch (e) {
+    // ignore quota/private mode restrictions
+  }
+}
+
 const getTodayDateStr = () => {
   const d = new Date();
   const y = d.getFullYear();
@@ -408,6 +424,11 @@ const useSlateStore = create(
         })
       })),
 
+      lastActiveAt: Date.now(),
+      retentionSettings: {
+        autoPurgeTrash30Days: true,
+      },
+
       removeSticker: (noteId, stickerId) => set((state) => ({
         notes: state.notes.map((note) => {
           if (note.id !== noteId) return note;
@@ -417,14 +438,51 @@ const useSlateStore = create(
             updatedAt: Date.now()
           };
         })
-      }))
+      })),
+
+      updateRetentionSettings: (settings) => set((state) => ({
+        retentionSettings: { ...(state.retentionSettings || {}), ...settings }
+      })),
+
+      importWorkspace: (importedData) => set((state) => ({
+        ...state,
+        notes: importedData.notes || state.notes,
+        folders: importedData.folders || state.folders,
+        tags: importedData.tags || state.tags,
+        journals: importedData.journals || state.journals,
+        calendarEvents: importedData.calendarEvents || state.calendarEvents,
+        activeAestheticTheme: importedData.activeAestheticTheme || state.activeAestheticTheme,
+        folderThemes: importedData.folderThemes || state.folderThemes,
+        lastActiveAt: Date.now(),
+      })),
+
+      resetWorkspace: () => {
+        try {
+          localStorage.removeItem('bloom-workspace-storage');
+          localStorage.removeItem('slate-notes-storage');
+        } catch (e) {}
+        window.location.reload();
+      },
 
     }),
     {
-      name: 'slate-notes-storage', // name of item in localStorage
+      name: 'bloom-workspace-storage', // Independent local-first device storage
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.journalViewMode = 'notes';
+          state.lastActiveAt = Date.now();
+
+          // Smart Inactivity & Memory Box Purge: auto-delete trash notes older than 30 days
+          const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+          const now = Date.now();
+          if (Array.isArray(state.notes)) {
+            state.notes = state.notes.filter((n) => {
+              if (n.deletedAt && (now - n.deletedAt > THIRTY_DAYS_MS)) {
+                return false; // Automatically purge notes in Memory Box older than 30 days
+              }
+              return true;
+            });
+          }
           if (state.activeAestheticTheme === 'toffee' || state.activeAestheticTheme === 'sunsetMeadow') {
             state.activeAestheticTheme = 'caramel';
           } else if (state.activeAestheticTheme === 'sage') {
