@@ -1,6 +1,22 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+const getTodayDateStr = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const getTomorrowDateStr = () => {
+  const d = new Date(Date.now() + 86400000);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
 const useSlateStore = create(
   persist(
     (set, get) => ({
@@ -64,6 +80,7 @@ const useSlateStore = create(
       currentTheme: 'pastel-dream',
       showTrash: false,
       showFavorites: false,
+      showCalendar: false,
       confettiTrigger: null,
       journalViewMode: 'notes',
       journals: {},
@@ -75,12 +92,68 @@ const useSlateStore = create(
       },
       sortMode: 'newest', // 'newest' | 'oldest' | 'az' | 'color'
       openNoteId: null, // ID of note open in full editor
+      calendarEvents: [
+        {
+          id: 'evt-1',
+          date: getTodayDateStr(),
+          title: 'Water plants & morning matcha 🍵🌱',
+          category: 'personal',
+          time: '09:00',
+          completed: true,
+        },
+        {
+          id: 'evt-2',
+          date: getTomorrowDateStr(),
+          title: 'Review project milestones & plan ahead 🌸',
+          category: 'work',
+          time: '11:00',
+          completed: false,
+        },
+        {
+          id: 'evt-3',
+          date: getTomorrowDateStr(),
+          title: 'Self-care & evening reading 📖✨',
+          category: 'selfcare',
+          time: '19:30',
+          completed: false,
+        },
+      ],
 
       // --- ACTIONS ---
       setSearchQuery: (query) => set({ searchQuery: query }),
-      setActiveFolderId: (id) => set({ activeFolderId: id, activeTagId: null, showTrash: false, showFavorites: false }),
-      setActiveTagId: (id) => set({ activeTagId: id, activeFolderId: null, showTrash: false, showFavorites: false }),
-      setShowFavorites: (show) => set({ showFavorites: show, activeFolderId: null, activeTagId: null, showTrash: false }),
+      setActiveFolderId: (id) => set({ activeFolderId: id, activeTagId: null, showTrash: false, showFavorites: false, showCalendar: false }),
+      setActiveTagId: (id) => set({ activeTagId: id, activeFolderId: null, showTrash: false, showFavorites: false, showCalendar: false }),
+      setShowFavorites: (show) => set({ showFavorites: show, activeFolderId: null, activeTagId: null, showTrash: false, showCalendar: false }),
+      setShowCalendar: (show) => set({ showCalendar: show, activeFolderId: null, activeTagId: null, showTrash: false, showFavorites: false }),
+      addCalendarEvent: (eventData) => {
+        const newEvent = {
+          id: 'evt-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
+          title: eventData.title || 'Untitled reminder',
+          date: eventData.date || getTodayDateStr(),
+          time: eventData.time || '',
+          category: eventData.category || 'personal',
+          color: eventData.color || 'pink',
+          completed: false,
+          createdAt: Date.now(),
+        };
+        set((state) => ({
+          calendarEvents: [...(state.calendarEvents || []), newEvent],
+        }));
+        return newEvent.id;
+      },
+      updateCalendarEvent: (id, updates) => set((state) => ({
+        calendarEvents: (state.calendarEvents || []).map((evt) =>
+          evt.id === id ? { ...evt, ...updates } : evt
+        ),
+      })),
+      deleteCalendarEvent: (id) => set((state) => ({
+        calendarEvents: (state.calendarEvents || []).filter((evt) => evt.id !== id),
+      })),
+      toggleCalendarEvent: (id) => set((state) => ({
+        calendarEvents: (state.calendarEvents || []).map((evt) =>
+          evt.id === id ? { ...evt, completed: !evt.completed } : evt
+        ),
+      })),
       setViewMode: (mode) => set({ viewMode: mode }),
       setCurrentTheme: (theme) => {
         const selectedTheme = theme === 'midnight-stars' ? 'pastel-dream' : theme;
@@ -100,6 +173,7 @@ const useSlateStore = create(
       setShowTrash: (show) => set({
         showTrash: show,
         showFavorites: false,
+        showCalendar: false,
         activeFolderId: show ? null : get().activeFolderId,
         activeTagId: show ? null : get().activeTagId
       }),
@@ -366,6 +440,34 @@ const useSlateStore = create(
               'folder-personal': 'rose',
               'folder-ideas': 'lavender',
             };
+          }
+          if (!Array.isArray(state.calendarEvents) || state.calendarEvents.length === 0) {
+            state.calendarEvents = [
+              {
+                id: 'evt-1',
+                date: getTodayDateStr(),
+                title: 'Water plants & morning matcha 🍵🌱',
+                category: 'personal',
+                time: '09:00',
+                completed: true,
+              },
+              {
+                id: 'evt-2',
+                date: getTomorrowDateStr(),
+                title: 'Review project milestones & plan ahead 🌸',
+                category: 'work',
+                time: '11:00',
+                completed: false,
+              },
+              {
+                id: 'evt-3',
+                date: getTomorrowDateStr(),
+                title: 'Self-care & evening reading 📖✨',
+                category: 'selfcare',
+                time: '19:30',
+                completed: false,
+              },
+            ];
           }
           if (Array.isArray(state.notes)) {
             state.notes.forEach((n) => {

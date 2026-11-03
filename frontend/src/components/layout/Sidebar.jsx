@@ -3,7 +3,7 @@ import useSlateStore from '../../store/useSlateStore';
 import { THEMES, TAG_COLOR_MAP } from '../../utils/theme-config';
 import BloomLogo from '../ui/BloomLogo';
 import EmojiPickerPopover from '../ui/EmojiPickerPopover';
-import { Plus, Star, FileText, Trash2, HelpCircle, CheckSquare } from 'lucide-react';
+import { Plus, Star, FileText, Trash2, HelpCircle, CheckSquare, CalendarDays } from 'lucide-react';
 
 const Sidebar = ({ onCloseMobile }) => {
   const {
@@ -13,6 +13,9 @@ const Sidebar = ({ onCloseMobile }) => {
     activeTagId,
     showTrash,
     showFavorites,
+    showCalendar,
+    setShowCalendar,
+    calendarEvents = [],
     folderThemes,
     setActiveFolderId,
     setActiveTagId,
@@ -83,14 +86,21 @@ const Sidebar = ({ onCloseMobile }) => {
       setActiveTagId(null);
       setShowTrash(false);
       setShowFavorites(false);
+      setShowCalendar(false);
     } else if (type === 'favorites') {
       setShowFavorites(true);
+      setShowCalendar(false);
+    } else if (type === 'calendar') {
+      setShowCalendar(true);
     } else if (type === 'folder') {
       setActiveFolderId(id);
+      setShowCalendar(false);
     } else if (type === 'tag') {
       setActiveTagId(id);
+      setShowCalendar(false);
     } else if (type === 'trash') {
       setShowTrash(true);
+      setShowCalendar(false);
     }
     if (onCloseMobile) onCloseMobile();
   };
@@ -136,6 +146,25 @@ const Sidebar = ({ onCloseMobile }) => {
           <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] opacity-75">
             {favoritesCount}
           </span>
+        </button>
+
+        <button
+          onClick={() => selectView('calendar')}
+          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+            showCalendar
+              ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
+              : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <CalendarDays className="w-4 h-4 text-[var(--color-accent)]" />
+            <span>Calendar & Planner</span>
+          </div>
+          {calendarEvents.length > 0 && (
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] opacity-75">
+              {calendarEvents.length}
+            </span>
+          )}
         </button>
       </div>
 

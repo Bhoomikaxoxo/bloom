@@ -4,6 +4,7 @@ import useSlateStore from '../../store/useSlateStore';
 import NoteCard from '../notes/NoteCard';
 import NoteEditor from '../notes/NoteEditor';
 import JournalPanel from './JournalPanel';
+import CalendarView from '../calendar/CalendarView';
 import ThemeSwitcher from './ThemeSwitcher';
 import {
   Search, Plus, Sparkles, BookOpen, Columns, FileText,
@@ -29,6 +30,8 @@ const MainCanvas = () => {
     viewMode,
     showTrash,
     showFavorites,
+    showCalendar,
+    setShowCalendar,
     sortMode,
     openNoteId,
     setSearchQuery,
@@ -73,13 +76,20 @@ const MainCanvas = () => {
       }
 
       if (!isInput && !meta && !openNoteId) {
-        if (e.key === 'g' || e.key === 'G') setViewMode('grid');
-        else if (e.key === 'b' || e.key === 'B') setViewMode('board');
+        if (e.key === 'g' || e.key === 'G') {
+          setViewMode('grid');
+          setShowCalendar(false);
+        } else if (e.key === 'b' || e.key === 'B') {
+          setViewMode('board');
+          setShowCalendar(false);
+        } else if (e.key === 'p' || e.key === 'P') {
+          setShowCalendar(!showCalendar);
+        }
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [addNote, setOpenNoteId, openNoteId, setViewMode]);
+  }, [addNote, setOpenNoteId, openNoteId, setViewMode, showCalendar, setShowCalendar]);
 
   // Filter notes
   const filteredNotes = notes.filter((note) => {
@@ -128,7 +138,9 @@ const MainCanvas = () => {
   const showJournal = journalViewMode === 'both' || journalViewMode === 'journal';
   const showNotes = journalViewMode === 'both' || journalViewMode === 'notes';
 
-  const currentViewTitle = showTrash
+  const currentViewTitle = showCalendar
+    ? 'Calendar & Planner'
+    : showTrash
     ? 'Memory Box'
     : showFavorites
     ? 'Favorites'
@@ -138,7 +150,9 @@ const MainCanvas = () => {
     ? `#${activeTag.name}`
     : 'All Notes';
 
-  const currentViewIcon = showTrash
+  const currentViewIcon = showCalendar
+    ? '🗓️'
+    : showTrash
     ? '📦'
     : showFavorites
     ? '⭐'
@@ -282,10 +296,14 @@ const MainCanvas = () => {
 
       {/* Main Workspace Canvas Area */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-        {showJournal && <JournalPanel />}
+        {showCalendar ? (
+          <CalendarView />
+        ) : (
+          <>
+            {showJournal && <JournalPanel />}
 
-        {showNotes && (
-          <div className="flex-1 overflow-auto bg-notebook-grid relative p-6 sm:p-8">
+            {showNotes && (
+              <div className="flex-1 overflow-auto bg-notebook-grid relative p-6 sm:p-8">
             <div className={viewMode === 'grid' || showTrash ? 'max-w-6xl mx-auto w-full' : ''}>
               {/* Memory Box banner */}
               {showTrash && (
@@ -408,6 +426,8 @@ const MainCanvas = () => {
               )}
             </div>
           </div>
+        )}
+          </>
         )}
       </div>
 

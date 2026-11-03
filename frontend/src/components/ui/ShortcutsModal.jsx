@@ -7,7 +7,7 @@ const shortcuts = [
         items: [
             { keys: ['⌘', 'K'], description: 'Quick search' },
             { keys: ['⌘', 'N'], description: 'New note' },
-            { keys: ['⌘', 'T'], description: 'Go to tasks' },
+            { keys: ['P'], description: 'Calendar & Planner' },
             { keys: ['Esc'], description: 'Close dialogs' },
         ]
     },
