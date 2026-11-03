@@ -11,17 +11,19 @@ import { Menu, X } from 'lucide-react';
 const AppLayout = () => {
   const activeAestheticTheme = useSlateStore((state) => state.activeAestheticTheme || 'caramel');
   const folderThemes = useSlateStore((state) => state.folderThemes || {});
+  const folders = useSlateStore((state) => state.folders || []);
   const activeFolderId = useSlateStore((state) => state.activeFolderId);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Apply visual theme custom properties dynamically
   useEffect(() => {
-    const folderOverride = activeFolderId ? folderThemes[activeFolderId] : null;
+    const activeFolder = folders.find((f) => f.id === activeFolderId);
+    const folderOverride = activeFolder?.theme || (activeFolderId ? folderThemes[activeFolderId] : null);
     const currentThemeId = folderOverride || activeAestheticTheme;
     const activeTheme = themes[currentThemeId] || themes.caramel;
     applyTheme(activeTheme);
-  }, [activeFolderId, activeAestheticTheme, folderThemes]);
+  }, [activeFolderId, activeAestheticTheme, folderThemes, folders]);
 
   return (
     <div

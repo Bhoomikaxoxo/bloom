@@ -429,7 +429,11 @@ const NoteEditor = ({ note, onClose }) => {
               className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer border"
               style={{ color: 'var(--color-text-muted)', borderColor: 'var(--color-card-border)', backgroundColor: 'white' }}
             >
-              <span>{noteFolder ? noteFolder.icon : '📁'}</span>
+              {noteFolder ? (
+                <span>{noteFolder.icon}</span>
+              ) : (
+                <Folder className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+              )}
               <span>{noteFolder ? noteFolder.name : 'No folder'}</span>
             </button>
             <AnimatePresence>
@@ -441,8 +445,9 @@ const NoteEditor = ({ note, onClose }) => {
                   className="absolute bottom-full left-0 mb-1.5 w-44 bg-white border border-black/[0.08] rounded-xl shadow-lg p-1.5 z-50"
                 >
                   <button onClick={() => { updateNote(note.id, { folderId: null }); setShowFolderMenu(false); }}
-                    className="w-full text-left px-2 py-1.5 rounded-lg text-xs hover:bg-slate-50 font-medium cursor-pointer">
-                    📁 No folder
+                    className="w-full text-left px-2 py-1.5 rounded-lg text-xs hover:bg-slate-50 font-medium cursor-pointer flex items-center gap-1.5">
+                    <Folder className="w-3.5 h-3.5 text-slate-400" />
+                    <span>No folder</span>
                   </button>
                   {folders.map((f) => (
                     <button key={f.id} onClick={() => { updateNote(note.id, { folderId: f.id }); setShowFolderMenu(false); }}

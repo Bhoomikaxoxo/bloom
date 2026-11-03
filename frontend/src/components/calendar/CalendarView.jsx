@@ -3,15 +3,34 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useSlateStore from '../../store/useSlateStore';
 import {
   CalendarDays, ChevronLeft, ChevronRight, Plus, Check, Trash2,
-  Clock, Sparkles, AlertCircle, ArrowRight, Star
+  Clock, Sparkles, ArrowRight, Briefcase, Heart, Bell, CheckSquare, FileText
 } from 'lucide-react';
 
 const CATEGORIES = {
-  personal: { label: 'Personal', icon: '🌸', color: 'pink', badge: 'bg-rose-100 text-rose-800 border-rose-200/80 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800/60' },
-  work: { label: 'Work', icon: '💼', color: 'mint', badge: 'bg-emerald-100 text-emerald-800 border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60' },
-  reminder: { label: 'Reminder', icon: '⏰', color: 'amber', badge: 'bg-amber-100 text-amber-800 border-amber-200/80 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/60' },
-  selfcare: { label: 'Self-Care', icon: '🛁', color: 'lavender', badge: 'bg-purple-100 text-purple-800 border-purple-200/80 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/60' },
-  ideas: { label: 'Idea', icon: '💡', color: 'sky', badge: 'bg-sky-100 text-sky-800 border-sky-200/80 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800/60' },
+  personal: {
+    label: 'Personal',
+    Icon: Heart,
+    color: 'pink',
+    badge: 'bg-rose-100 text-rose-800 border-rose-200/80 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800/60'
+  },
+  work: {
+    label: 'Work',
+    Icon: Briefcase,
+    color: 'mint',
+    badge: 'bg-emerald-100 text-emerald-800 border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60'
+  },
+  task: {
+    label: 'Task',
+    Icon: CheckSquare,
+    color: 'sky',
+    badge: 'bg-sky-100 text-sky-800 border-sky-200/80 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800/60'
+  },
+  reminder: {
+    label: 'Reminder',
+    Icon: Bell,
+    color: 'amber',
+    badge: 'bg-amber-100 text-amber-800 border-amber-200/80 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/60'
+  },
 };
 
 const formatDateKey = (d) => {
@@ -29,6 +48,7 @@ const CalendarView = () => {
     deleteCalendarEvent,
     toggleCalendarEvent,
     notes = [],
+    addNote,
     setOpenNoteId,
     triggerConfetti,
   } = useSlateStore();
@@ -68,15 +88,13 @@ const CalendarView = () => {
   // Calendar grid calculations
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
-
   const monthName = currentDate.toLocaleString('default', { month: 'long' });
 
   const calendarDays = useMemo(() => {
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
-
     const daysInMonth = lastDayOfMonth.getDate();
-    // Monday = 0, Sunday = 6
+
     let startDayOfWeek = firstDayOfMonth.getDay() - 1;
     if (startDayOfWeek === -1) startDayOfWeek = 6;
 
@@ -103,7 +121,7 @@ const CalendarView = () => {
       });
     }
 
-    // Next month padding to fill 35 or 42 cells
+    // Next month padding to fill grid
     const remaining = (7 - (days.length % 7)) % 7;
     for (let i = 1; i <= remaining; i++) {
       const d = new Date(year, month + 1, i);
@@ -132,7 +150,7 @@ const CalendarView = () => {
   const selectedNotes = (notes || []).filter((n) => {
     if (n.deletedAt !== null) return false;
     const noteCreatedKey = formatDateKey(n.createdAt);
-    return noteCreatedKey === selectedDateKey;
+    return n.scheduledDate === selectedDateKey || noteCreatedKey === selectedDateKey;
   });
 
   const selectedDateObj = useMemo(() => {
@@ -144,6 +162,7 @@ const CalendarView = () => {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
+    year: 'numeric',
   });
 
   const isSelectedToday = selectedDateKey === todayKey;
@@ -164,10 +183,14 @@ const CalendarView = () => {
     setNewEventTime('');
   };
 
+  const handleCreateNoteForDate = (type = 'text') => {
+    const noteId = addNote(type, selectedDateKey);
+    setOpenNoteId(noteId);
+  };
+
   const handleToggleEvent = (evt, e) => {
     toggleCalendarEvent(evt.id);
     if (!evt.completed) {
-      // Check if this was the last item for this day
       const uncompletedCount = selectedEvents.filter((item) => !item.completed && item.id !== evt.id).length;
       if (uncompletedCount === 0) {
         triggerConfetti(e?.clientX || window.innerWidth / 2, e?.clientY || window.innerHeight / 2);
@@ -176,27 +199,28 @@ const CalendarView = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-[var(--color-bg-from)]">
-      {/* LEFT: Clean Monthly Calendar Grid */}
-      <div className="flex-1 flex flex-col p-6 sm:p-8 overflow-y-auto border-r border-black/[0.08] dark:border-white/[0.08]">
+    <div className="flex-1 flex flex-col lg:flex-row h-full overflow-hidden bg-[var(--color-bg-from)] select-none">
+      {/* LEFT: Monthly Calendar Grid */}
+      <div className="flex-1 flex flex-col p-5 sm:p-7 overflow-y-auto border-r border-black/[0.08] dark:border-white/[0.08]">
         {/* Header Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[var(--color-accent-bg)] flex items-center justify-center text-[var(--color-accent)] shadow-2xs">
+            <div className="w-9 h-9 rounded-xl bg-[var(--color-accent-bg)] flex items-center justify-center text-[var(--color-accent)] shadow-2xs">
               <CalendarDays className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[var(--color-text)] tracking-tight">
+              <h2 className="text-lg font-bold text-[var(--color-text)] tracking-tight">
                 {monthName} {year}
               </h2>
               <p className="text-xs text-[var(--color-text-muted)] font-medium">
-                {calendarEvents.length} events & reminders planned
+                {calendarEvents.length} scheduled tasks & reminders
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={goToToday}
               className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 isSelectedToday
@@ -207,18 +231,20 @@ const CalendarView = () => {
               Today
             </button>
             <button
+              type="button"
               onClick={goToTomorrow}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 isSelectedTomorrow
                   ? 'bg-[var(--color-accent)] text-white shadow-2xs'
                   : 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] hover:opacity-90'
               }`}
             >
-              <Sparkles className="w-3 h-3" />
+              <Sparkles className="w-3.5 h-3.5" />
               <span>Tomorrow</span>
             </button>
             <div className="flex items-center bg-black/[0.04] dark:bg-white/[0.06] rounded-full p-0.5 border border-black/[0.06] dark:border-white/[0.08]">
               <button
+                type="button"
                 onClick={prevMonth}
                 className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer"
                 title="Previous Month"
@@ -226,6 +252,7 @@ const CalendarView = () => {
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
+                type="button"
                 onClick={nextMonth}
                 className="p-1.5 rounded-full text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer"
                 title="Next Month"
@@ -249,7 +276,7 @@ const CalendarView = () => {
         </div>
 
         {/* Month Dates Grid */}
-        <div className="grid grid-cols-7 gap-2 flex-1 auto-rows-fr">
+        <div className="grid grid-cols-7 gap-2 flex-1">
           {calendarDays.map(({ date, dateKey, isCurrentMonth }) => {
             const isToday = dateKey === todayKey;
             const isSelected = dateKey === selectedDateKey;
@@ -257,11 +284,10 @@ const CalendarView = () => {
             const dayNum = date.getDate();
 
             return (
-              <motion.div
+              <div
                 key={dateKey}
-                whileHover={{ y: -2 }}
                 onClick={() => setSelectedDateKey(dateKey)}
-                className={`relative min-h-[70px] sm:min-h-[85px] p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                className={`relative min-h-[75px] sm:min-h-[85px] p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                   isSelected
                     ? 'ring-2 ring-[var(--color-accent)] bg-white dark:bg-slate-800 shadow-md border-transparent z-10'
                     : isToday
@@ -291,7 +317,7 @@ const CalendarView = () => {
                   )}
                 </div>
 
-                {/* Event Mini Dots */}
+                {/* Event Mini Indicator Dots */}
                 <div className="flex items-center gap-1 mt-1 flex-wrap">
                   {dayEvents.slice(0, 3).map((evt) => {
                     const cat = CATEGORIES[evt.category] || CATEGORIES.personal;
@@ -305,8 +331,7 @@ const CalendarView = () => {
                           backgroundColor:
                             cat.color === 'pink' ? '#F43F5E' :
                             cat.color === 'mint' ? '#10B981' :
-                            cat.color === 'amber' ? '#F59E0B' :
-                            cat.color === 'lavender' ? '#A855F7' : '#0EA5E9',
+                            cat.color === 'sky' ? '#0EA5E9' : '#F59E0B',
                         }}
                         title={evt.title}
                       />
@@ -318,32 +343,33 @@ const CalendarView = () => {
                     </span>
                   )}
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
       </div>
 
-      {/* RIGHT: Daily Agenda & "Keep in Mind" Planner Panel */}
-      <div className="w-full lg:w-[400px] xl:w-[440px] flex flex-col h-full bg-[var(--color-card-bg)] border-t lg:border-t-0 lg:border-l border-black/[0.08] dark:border-white/[0.08] overflow-hidden flex-shrink-0 shadow-lg select-text">
+      {/* RIGHT: Daily Planner & Task Agenda Panel */}
+      <div className="w-full lg:w-[400px] xl:w-[430px] flex flex-col h-full bg-[var(--color-card-bg)] border-t lg:border-t-0 lg:border-l border-black/[0.08] dark:border-white/[0.08] overflow-hidden flex-shrink-0 shadow-lg select-text">
         {/* Day Header */}
-        <div className="p-6 border-b border-black/[0.08] dark:border-white/[0.08] flex items-center justify-between flex-shrink-0">
+        <div className="p-5 border-b border-black/[0.08] dark:border-white/[0.08] flex items-center justify-between flex-shrink-0">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="text-xs font-bold tracking-wider text-[var(--color-accent)] uppercase">
-                {isSelectedToday ? '🌸 Today' : isSelectedTomorrow ? '✨ Tomorrow' : '🗓️ Planned Day'}
+                {isSelectedToday ? 'Today' : isSelectedTomorrow ? 'Tomorrow' : 'Scheduled Date'}
               </span>
               <span className="text-xs text-[var(--color-text-muted)] font-medium">
                 · {selectedDateKey}
               </span>
             </div>
-            <h3 className="text-lg font-bold text-[var(--color-text)] tracking-tight">
+            <h3 className="text-base font-bold text-[var(--color-text)] tracking-tight">
               {selectedDateDisplay}
             </h3>
           </div>
 
           {!isSelectedTomorrow && (
             <button
+              type="button"
               onClick={goToTomorrow}
               className="text-xs font-semibold px-2.5 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] text-[var(--color-text)] flex items-center gap-1 transition-all cursor-pointer"
               title="Jump to Tomorrow"
@@ -354,15 +380,15 @@ const CalendarView = () => {
           )}
         </div>
 
-        {/* Quick Add Reminder / Event Form */}
-        <form onSubmit={handleAddEvent} className="p-5 border-b border-black/[0.06] dark:border-white/[0.08] space-y-3 flex-shrink-0 bg-black/[0.015] dark:bg-white/[0.02]">
+        {/* Quick Add Task Form */}
+        <form onSubmit={handleAddEvent} className="p-4 border-b border-black/[0.06] dark:border-white/[0.08] space-y-2.5 flex-shrink-0 bg-black/[0.015] dark:bg-white/[0.02]">
           <div className="relative">
             <input
               type="text"
-              placeholder={isSelectedTomorrow ? "Mark for tomorrow… (e.g. Call dentist 🌸, Submit brief 💼)" : "Mark or keep in mind…"}
+              placeholder={isSelectedTomorrow ? "Plan task for tomorrow…" : "Add task or reminder to this day…"}
               value={newEventTitle}
               onChange={(e) => setNewEventTitle(e.target.value)}
-              className="w-full pl-3 pr-8 py-2 bg-white dark:bg-slate-800 text-[var(--color-text)] text-xs font-medium rounded-xl border border-black/[0.08] dark:border-white/[0.1] outline-none focus:border-[var(--color-accent)] placeholder:text-slate-400 shadow-2xs transition-all"
+              className="w-full pl-3 pr-8 py-1.5 bg-white dark:bg-slate-800 text-[var(--color-text)] text-xs font-medium rounded-xl border border-black/[0.08] dark:border-white/[0.1] outline-none focus:border-[var(--color-accent)] placeholder:text-slate-400 shadow-2xs transition-all"
             />
             {newEventTitle && (
               <button
@@ -378,21 +404,24 @@ const CalendarView = () => {
           <div className="flex items-center justify-between gap-2 flex-wrap">
             {/* Category selection */}
             <div className="flex items-center gap-1 flex-wrap">
-              {Object.entries(CATEGORIES).map(([key, cat]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setNewEventCategory(key)}
-                  className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1 ${
-                    newEventCategory === key
-                      ? 'bg-[var(--color-accent)] text-white shadow-2xs font-bold scale-105'
-                      : 'bg-black/[0.04] dark:bg-white/[0.06] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                  }`}
-                >
-                  <span>{cat.icon}</span>
-                  <span>{cat.label}</span>
-                </button>
-              ))}
+              {Object.entries(CATEGORIES).map(([key, cat]) => {
+                const CatIcon = cat.Icon;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setNewEventCategory(key)}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all cursor-pointer flex items-center gap-1 ${
+                      newEventCategory === key
+                        ? 'bg-[var(--color-accent)] text-white shadow-2xs font-bold scale-105'
+                        : 'bg-black/[0.04] dark:bg-white/[0.06] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                    }`}
+                  >
+                    <CatIcon className="w-3 h-3" />
+                    <span>{cat.label}</span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Optional Time & Submit */}
@@ -409,122 +438,152 @@ const CalendarView = () => {
                 className="px-3 py-1 bg-[var(--color-accent)] hover:opacity-95 disabled:opacity-40 text-white rounded-lg text-xs font-bold shadow-2xs transition-all cursor-pointer flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Mark</span>
+                <span>Add Task</span>
               </button>
             </div>
           </div>
         </form>
 
-        {/* Day's Agenda List */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
-              Scheduled Items ({selectedEvents.length})
-            </span>
-            {selectedEvents.length > 0 && (
-              <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
-                {selectedEvents.filter((i) => i.completed).length}/{selectedEvents.length} done
+        {/* Day's Agenda & Notes List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {/* Scheduled Tasks Header */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
+                Tasks ({selectedEvents.length})
               </span>
+              {selectedEvents.length > 0 && (
+                <span className="text-[11px] font-semibold text-[var(--color-text-muted)]">
+                  {selectedEvents.filter((i) => i.completed).length}/{selectedEvents.length} complete
+                </span>
+              )}
+            </div>
+
+            {selectedEvents.length === 0 ? (
+              <div className="py-8 text-center flex flex-col items-center justify-center animate-fade-in border border-dashed border-black/10 dark:border-white/10 rounded-xl p-4">
+                <CheckSquare className="w-8 h-8 text-[var(--color-text-muted)] opacity-40 mb-2" />
+                <h4 className="text-xs font-bold text-[var(--color-text)] mb-0.5">
+                  No tasks scheduled for this day
+                </h4>
+                <p className="text-[11px] text-[var(--color-text-muted)] max-w-xs leading-relaxed">
+                  Type above to schedule tasks for {isSelectedTomorrow ? 'tomorrow' : 'this date'}.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <AnimatePresence initial={false}>
+                  {selectedEvents.map((evt) => {
+                    const cat = CATEGORIES[evt.category] || CATEGORIES.personal;
+                    const CatIcon = cat.Icon;
+                    return (
+                      <motion.div
+                        key={evt.id}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className={`group p-2.5 rounded-xl border transition-all flex items-start gap-2.5 bg-white dark:bg-slate-800/80 shadow-2xs ${
+                          evt.completed
+                            ? 'border-black/[0.04] dark:border-white/[0.04] opacity-60'
+                            : 'border-black/[0.06] dark:border-white/[0.08] hover:border-[var(--color-accent)]/50'
+                        }`}
+                      >
+                        {/* Checkbox */}
+                        <button
+                          type="button"
+                          onClick={(e) => handleToggleEvent(evt, e)}
+                          className={`w-4 h-4 mt-0.5 rounded flex items-center justify-center border transition-all cursor-pointer flex-shrink-0 ${
+                            evt.completed
+                              ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
+                              : 'border-black/20 dark:border-white/30 hover:border-[var(--color-accent)]'
+                          }`}
+                        >
+                          {evt.completed && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </button>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                            <span className={`text-[10px] font-semibold px-2 py-0.2 rounded-full border flex items-center gap-1 ${cat.badge}`}>
+                              <CatIcon className="w-2.5 h-2.5" />
+                              <span>{cat.label}</span>
+                            </span>
+                            {evt.time && (
+                              <span className="text-[10px] font-medium text-[var(--color-text-muted)] flex items-center gap-0.5">
+                                <Clock className="w-2.5 h-2.5" />
+                                {evt.time}
+                              </span>
+                            )}
+                          </div>
+                          <p
+                            className={`text-xs leading-relaxed font-medium transition-all ${
+                              evt.completed
+                                ? 'line-through text-slate-400 dark:text-slate-500'
+                                : 'text-[var(--color-text)]'
+                            }`}
+                          >
+                            {evt.title}
+                          </p>
+                        </div>
+
+                        {/* Delete Action */}
+                        <button
+                          type="button"
+                          onClick={() => deleteCalendarEvent(evt.id)}
+                          className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer flex-shrink-0"
+                          title="Delete item"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
             )}
           </div>
 
-          {selectedEvents.length === 0 ? (
-            <div className="py-12 text-center flex flex-col items-center justify-center animate-fade-in">
-              <div className="w-12 h-12 rounded-full bg-[var(--color-accent-bg)] flex items-center justify-center text-xl mb-3 text-[var(--color-accent)]">
-                🌸
-              </div>
-              <h4 className="text-sm font-bold text-[var(--color-text)] mb-1">
-                Nothing marked for this day
-              </h4>
-              <p className="text-xs text-[var(--color-text-muted)] max-w-xs leading-relaxed">
-                Add an event, reminder, or anything you want to keep in mind for {isSelectedTomorrow ? 'tomorrow' : 'this date'}.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <AnimatePresence initial={false}>
-                {selectedEvents.map((evt) => {
-                  const cat = CATEGORIES[evt.category] || CATEGORIES.personal;
-                  return (
-                    <motion.div
-                      key={evt.id}
-                      initial={{ opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className={`group p-3 rounded-xl border transition-all flex items-start gap-2.5 bg-white dark:bg-slate-800/80 shadow-2xs ${
-                        evt.completed
-                          ? 'border-black/[0.04] dark:border-white/[0.04] opacity-60'
-                          : 'border-black/[0.06] dark:border-white/[0.08] hover:border-[var(--color-accent)]/50'
-                      }`}
-                    >
-                      {/* Checkbox */}
-                      <button
-                        type="button"
-                        onClick={(e) => handleToggleEvent(evt, e)}
-                        className={`w-4 h-4 mt-0.5 rounded flex items-center justify-center border transition-all cursor-pointer flex-shrink-0 ${
-                          evt.completed
-                            ? 'bg-[var(--color-accent)] border-[var(--color-accent)] text-white'
-                            : 'border-black/20 dark:border-white/30 hover:border-[var(--color-accent)]'
-                        }`}
-                      >
-                        {evt.completed && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                      </button>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap mb-1">
-                          <span className={`text-[10px] font-semibold px-2 py-0.2 rounded-full border ${cat.badge}`}>
-                            {cat.icon} {cat.label}
-                          </span>
-                          {evt.time && (
-                            <span className="text-[10px] font-medium text-[var(--color-text-muted)] flex items-center gap-0.5">
-                              <Clock className="w-2.5 h-2.5" />
-                              {evt.time}
-                            </span>
-                          )}
-                        </div>
-                        <p
-                          className={`text-xs leading-relaxed font-medium transition-all ${
-                            evt.completed
-                              ? 'line-through text-slate-400 dark:text-slate-500'
-                              : 'text-[var(--color-text)]'
-                          }`}
-                        >
-                          {evt.title}
-                        </p>
-                      </div>
-
-                      {/* Delete Action */}
-                      <button
-                        type="button"
-                        onClick={() => deleteCalendarEvent(evt.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all cursor-pointer flex-shrink-0"
-                        title="Delete item"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-            </div>
-          )}
-
-          {/* Notes Created / Scheduled on this day */}
-          {selectedNotes.length > 0 && (
-            <div className="pt-4 border-t border-black/[0.06] dark:border-white/[0.08] space-y-2">
+          {/* Notes for this day */}
+          <div className="pt-3 border-t border-black/[0.06] dark:border-white/[0.08] space-y-2">
+            <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
-                Notes from this day ({selectedNotes.length})
+                Notes for this Day ({selectedNotes.length})
               </span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => handleCreateNoteForDate('text')}
+                  className="text-[10px] font-semibold text-[var(--color-accent)] hover:underline flex items-center gap-0.5 cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Note</span>
+                </button>
+                <span className="text-[10px] text-[var(--color-text-muted)]">·</span>
+                <button
+                  type="button"
+                  onClick={() => handleCreateNoteForDate('checklist')}
+                  className="text-[10px] font-semibold text-[var(--color-accent)] hover:underline flex items-center gap-0.5 cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Checklist</span>
+                </button>
+              </div>
+            </div>
+
+            {selectedNotes.length > 0 ? (
               <div className="space-y-1.5">
                 {selectedNotes.map((n) => (
                   <button
                     key={n.id}
+                    type="button"
                     onClick={() => setOpenNoteId(n.id)}
                     className="w-full text-left p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.03] hover:bg-[var(--color-accent-bg)] border border-black/[0.05] dark:border-white/[0.06] transition-all cursor-pointer flex items-center justify-between group"
                   >
                     <div className="flex items-center gap-2 truncate">
-                      <span className="text-xs">📝</span>
+                      {n.type === 'checklist' ? (
+                        <CheckSquare className="w-3.5 h-3.5 text-[var(--color-accent)] flex-shrink-0" />
+                      ) : (
+                        <FileText className="w-3.5 h-3.5 text-[var(--color-accent)] flex-shrink-0" />
+                      )}
                       <span className="text-xs font-semibold text-[var(--color-text)] truncate">
                         {n.title || 'Untitled note'}
                       </span>
@@ -533,8 +592,12 @@ const CalendarView = () => {
                   </button>
                 ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <p className="text-[11px] text-[var(--color-text-muted)] italic">
+                No notes created or scheduled for this date.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -542,4 +605,3 @@ const CalendarView = () => {
 };
 
 export default CalendarView;
-

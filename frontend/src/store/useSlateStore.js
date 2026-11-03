@@ -40,15 +40,16 @@ const useSlateStore = create(
       notes: [
         {
           id: 'welcome-note',
-          title: 'Welcome to Bloom! 🌸✨',
+          title: 'Welcome to Bloom',
           type: 'text',
-          content: 'Bloom is an aesthetic, serene space for your thoughts, daily journal, and ideas.\n\n✨ Pin or star notes to keep favorites close\n✨ Switch between Grid view and freeform Canvas Board\n✨ Explore dedicated color themes for each folder\n✨ Write in your personal Journal with bold, italic, lists, and cursive handwriting',
+          content: 'Bloom is a clean workspace for your notes, to-do lists, and calendar tracking.\n\n• Organize notes and checklists into custom-themed folders\n• Mark tasks and keep items in mind using the Calendar & Planner\n• Drag notes in Freeform Board or align neatly in Grid view\n• Device-first storage keeps your data strictly private on this computer',
           colorIndex: 1, // Lavender
           isPinned: true,
           isFavorite: false,
           deletedAt: null,
           folderId: 'folder-ideas',
           tags: ['tag-creative'],
+          scheduledDate: getTodayDateStr(),
           boardPosition: { x: 50, y: 80 },
           createdAt: Date.now() - 3600000 * 2, // 2 hours ago
           updatedAt: Date.now() - 3600000 * 2,
@@ -56,13 +57,13 @@ const useSlateStore = create(
         },
         {
           id: 'starter-checklist',
-          title: 'Happy Day Checklist 🌟',
+          title: 'Daily Checklist',
           type: 'checklist',
           checklist: [
-            { id: 'item-1', text: 'Water the cute little plants 🌱', done: true },
-            { id: 'item-2', text: 'Drink a big glass of water 💧', done: true },
-            { id: 'item-3', text: 'Take a deep breath and smile ☀️', done: false },
-            { id: 'item-4', text: 'Write down one nice thing that happened today 📔', done: false },
+            { id: 'item-1', text: 'Water office plants and check workspace', done: true },
+            { id: 'item-2', text: 'Drink a glass of water and review agenda', done: true },
+            { id: 'item-3', text: 'Complete top priority items for today', done: false },
+            { id: 'item-4', text: 'Plan next day tasks on the Calendar', done: false },
           ],
           colorIndex: 3, // Buttery Yellow
           isPinned: false,
@@ -70,6 +71,7 @@ const useSlateStore = create(
           deletedAt: null,
           folderId: 'folder-personal',
           tags: ['tag-daily'],
+          scheduledDate: getTodayDateStr(),
           boardPosition: { x: 450, y: 120 },
           createdAt: Date.now() - 3600000 * 24, // 1 day ago
           updatedAt: Date.now() - 3600000 * 24,
@@ -78,9 +80,9 @@ const useSlateStore = create(
       ],
 
       folders: [
-        { id: 'folder-work', name: 'Work', icon: '💼' },
-        { id: 'folder-personal', name: 'Personal', icon: '💖' },
-        { id: 'folder-ideas', name: 'Ideas', icon: '💡' }
+        { id: 'folder-work', name: 'Work', icon: '💼', theme: 'matcha' },
+        { id: 'folder-personal', name: 'Personal', icon: '💖', theme: 'rose' },
+        { id: 'folder-ideas', name: 'Ideas', icon: '💡', theme: 'lavender' }
       ],
 
       tags: [
@@ -112,7 +114,7 @@ const useSlateStore = create(
         {
           id: 'evt-1',
           date: getTodayDateStr(),
-          title: 'Water plants & morning matcha 🍵🌱',
+          title: 'Morning review and workspace setup',
           category: 'personal',
           time: '09:00',
           completed: true,
@@ -120,7 +122,7 @@ const useSlateStore = create(
         {
           id: 'evt-2',
           date: getTomorrowDateStr(),
-          title: 'Review project milestones & plan ahead 🌸',
+          title: 'Review project milestones and deliverables',
           category: 'work',
           time: '11:00',
           completed: false,
@@ -128,8 +130,8 @@ const useSlateStore = create(
         {
           id: 'evt-3',
           date: getTomorrowDateStr(),
-          title: 'Self-care & evening reading 📖✨',
-          category: 'selfcare',
+          title: 'Evening wrap-up and task planning',
+          category: 'reminder',
           time: '19:30',
           completed: false,
         },
@@ -137,14 +139,25 @@ const useSlateStore = create(
 
       // --- ACTIONS ---
       setSearchQuery: (query) => set({ searchQuery: query }),
-      setActiveFolderId: (id) => set({ activeFolderId: id, activeTagId: null, showTrash: false, showFavorites: false, showCalendar: false }),
+      setActiveFolderId: (id) => {
+        const folder = get().folders.find((f) => f.id === id);
+        const folderTheme = folder?.theme || get().folderThemes?.[id];
+        set({
+          activeFolderId: id,
+          activeTagId: null,
+          showTrash: false,
+          showFavorites: false,
+          showCalendar: false,
+          ...(folderTheme ? { activeAestheticTheme: folderTheme } : {})
+        });
+      },
       setActiveTagId: (id) => set({ activeTagId: id, activeFolderId: null, showTrash: false, showFavorites: false, showCalendar: false }),
       setShowFavorites: (show) => set({ showFavorites: show, activeFolderId: null, activeTagId: null, showTrash: false, showCalendar: false }),
       setShowCalendar: (show) => set({ showCalendar: show, activeFolderId: null, activeTagId: null, showTrash: false, showFavorites: false }),
       addCalendarEvent: (eventData) => {
         const newEvent = {
           id: 'evt-' + Date.now().toString(36) + Math.random().toString(36).substr(2, 4),
-          title: eventData.title || 'Untitled reminder',
+          title: eventData.title || 'Untitled task',
           date: eventData.date || getTodayDateStr(),
           time: eventData.time || '',
           category: eventData.category || 'personal',
@@ -225,7 +238,7 @@ const useSlateStore = create(
       }),
 
       // --- NOTES CRUD ---
-      addNote: (type = 'text') => {
+      addNote: (type = 'text', scheduledDate = null) => {
         const id = 'note-' + Math.random().toString(36).substr(2, 9);
         const newNote = {
           id,
@@ -237,6 +250,7 @@ const useSlateStore = create(
           deletedAt: null,
           folderId: get().activeFolderId, // Assign current active folder if selected
           tags: get().activeTagId ? [get().activeTagId] : [], // Assign current active tag if selected
+          scheduledDate: scheduledDate || null,
           boardPosition: { x: 100 + Math.random() * 100, y: 100 + Math.random() * 100 },
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -364,7 +378,7 @@ const useSlateStore = create(
         const id = 'folder-' + Math.random().toString(36).substr(2, 9);
         const icons = ['📁', '💖', '💼', '💡', '🌟', '🍀', '🍓', '🎒'];
         const randomIcon = icons[Math.floor(Math.random() * icons.length)];
-        const newFolder = { id, name, icon: randomIcon };
+        const newFolder = { id, name, icon: randomIcon, theme: themeId };
 
         set((state) => ({
           folders: [...state.folders, newFolder],
@@ -374,7 +388,9 @@ const useSlateStore = create(
       },
 
       setFolderTheme: (folderId, themeId) => set((state) => ({
+        folders: state.folders.map((f) => f.id === folderId ? { ...f, theme: themeId } : f),
         folderThemes: { ...state.folderThemes, [folderId]: themeId },
+        ...(state.activeFolderId === folderId ? { activeAestheticTheme: themeId } : {})
       })),
 
       deleteFolder: (folderId) => set((state) => ({
@@ -492,19 +508,35 @@ const useSlateStore = create(
           } else if (state.activeAestheticTheme === 'lilacMist') {
             state.activeAestheticTheme = 'lavender';
           }
-          if (!state.folderThemes || Object.keys(state.folderThemes).length === 0) {
-            state.folderThemes = {
-              'folder-work': 'matcha',
-              'folder-personal': 'rose',
-              'folder-ideas': 'lavender',
-            };
+          const defaultThemes = {
+            'folder-work': 'matcha',
+            'folder-personal': 'rose',
+            'folder-ideas': 'lavender',
+          };
+
+          if (Array.isArray(state.folders)) {
+            state.folders.forEach((f) => {
+              if (!f.theme) {
+                f.theme = state.folderThemes?.[f.id] || defaultThemes[f.id] || 'caramel';
+              }
+            });
           }
+
+          state.folderThemes = { ...defaultThemes, ...(state.folderThemes || {}) };
+
+          if (state.activeFolderId) {
+            const activeF = (state.folders || []).find((f) => f.id === state.activeFolderId);
+            if (activeF?.theme) {
+              state.activeAestheticTheme = activeF.theme;
+            }
+          }
+
           if (!Array.isArray(state.calendarEvents) || state.calendarEvents.length === 0) {
             state.calendarEvents = [
               {
                 id: 'evt-1',
                 date: getTodayDateStr(),
-                title: 'Water plants & morning matcha 🍵🌱',
+                title: 'Morning review and workspace setup',
                 category: 'personal',
                 time: '09:00',
                 completed: true,
@@ -512,7 +544,7 @@ const useSlateStore = create(
               {
                 id: 'evt-2',
                 date: getTomorrowDateStr(),
-                title: 'Review project milestones & plan ahead 🌸',
+                title: 'Review project milestones and deliverables',
                 category: 'work',
                 time: '11:00',
                 completed: false,
@@ -520,8 +552,8 @@ const useSlateStore = create(
               {
                 id: 'evt-3',
                 date: getTomorrowDateStr(),
-                title: 'Self-care & evening reading 📖✨',
-                category: 'selfcare',
+                title: 'Evening wrap-up and task planning',
+                category: 'reminder',
                 time: '19:30',
                 completed: false,
               },
@@ -529,9 +561,9 @@ const useSlateStore = create(
           }
           if (Array.isArray(state.notes)) {
             state.notes.forEach((n) => {
-              if (n.id === 'welcome-note' && n.title && n.title.includes('Slate')) {
-                n.title = 'Welcome to Bloom! 🌸✨';
-                n.content = 'Bloom is an aesthetic, serene space for your thoughts, daily journal, and ideas.\n\n✨ Pin or star notes to keep favorites close\n✨ Switch between Grid view and freeform Canvas Board\n✨ Explore dedicated color themes for each folder\n✨ Write in your personal Journal with bold, italic, lists, and cursive handwriting';
+              if (n.id === 'welcome-note') {
+                n.title = 'Welcome to Bloom';
+                n.content = 'Bloom is a clean workspace for your notes, to-do lists, and calendar tracking.\n\n• Organize notes and checklists into custom-themed folders\n• Mark tasks and keep items in mind using the Calendar & Planner\n• Drag notes in Freeform Board or align neatly in Grid view\n• Device-first storage keeps your data strictly private on this computer';
               }
               if (Array.isArray(n.checklist)) {
                 n.checklist.forEach((item) => {

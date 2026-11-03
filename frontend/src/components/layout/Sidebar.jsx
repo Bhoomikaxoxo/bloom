@@ -102,17 +102,17 @@ const Sidebar = ({ onCloseMobile }) => {
       setActiveFolderId(null);
       setActiveTagId(null);
       setJournalViewMode('notes');
-    } else if (type === 'journal') {
-      setShowCalendar(false);
-      setShowTrash(false);
-      setShowFavorites(false);
-      setJournalViewMode('journal');
     } else if (type === 'calendar') {
       setShowCalendar(true);
       setShowTrash(false);
       setShowFavorites(false);
     } else if (type === 'folder') {
+      const folder = folders.find((f) => f.id === id);
+      const folderTheme = folder?.theme || folderThemes?.[id];
       setActiveFolderId(id);
+      if (folderTheme) {
+        setAestheticTheme(folderTheme);
+      }
       setShowCalendar(false);
       setShowTrash(false);
       setShowFavorites(false);
@@ -139,19 +139,19 @@ const Sidebar = ({ onCloseMobile }) => {
         <BloomLogo />
       </div>
 
-      {/* Main Views (All Notes, Favorites, Journal, Calendar) */}
+      {/* Main Views (All Notes, Favorites, Calendar & Planner) */}
       <div className="mb-4 space-y-1">
         <button
           onClick={() => selectView('all')}
           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
-            activeFolderId === null && !activeTagId && !showTrash && !showFavorites && !showCalendar && journalViewMode !== 'journal'
+            activeFolderId === null && !activeTagId && !showTrash && !showFavorites && !showCalendar
               ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
               : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
           }`}
         >
           <div className="flex items-center gap-2.5">
             <FileText className="w-4 h-4 opacity-70" />
-            <span>All Notes</span>
+            <span>All Notes & Tasks</span>
           </div>
           <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] opacity-75">
             {activeNotesCount}
@@ -172,23 +172,6 @@ const Sidebar = ({ onCloseMobile }) => {
           </div>
           <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-black/[0.06] dark:bg-white/[0.08] opacity-75">
             {favoritesCount}
-          </span>
-        </button>
-
-        <button
-          onClick={() => selectView('journal')}
-          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
-            journalViewMode === 'journal' && !showCalendar
-              ? 'bg-[var(--color-accent-bg)] text-[var(--color-accent)] font-bold shadow-2xs'
-              : 'text-[var(--color-text)] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
-          }`}
-        >
-          <div className="flex items-center gap-2.5">
-            <BookOpen className="w-4 h-4 text-[var(--color-accent)]" />
-            <span>Daily Journal</span>
-          </div>
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[var(--color-accent-bg)] text-[var(--color-accent)]">
-            Today
           </span>
         </button>
 
@@ -279,7 +262,7 @@ const Sidebar = ({ onCloseMobile }) => {
           {folders.map((folder) => {
             const count = notes.filter((n) => n.folderId === folder.id && n.deletedAt === null).length;
             const isSelected = activeFolderId === folder.id && !showTrash && !showFavorites;
-            const assignedThemeId = folderThemes?.[folder.id] || 'caramel';
+            const assignedThemeId = folder.theme || folderThemes?.[folder.id] || 'caramel';
             const assignedTheme = THEMES.find((t) => t.id === assignedThemeId) || THEMES[0];
 
             return (
@@ -309,7 +292,7 @@ const Sidebar = ({ onCloseMobile }) => {
                         e.stopPropagation();
                         setThemeMenuFolderId(themeMenuFolderId === folder.id ? null : folder.id);
                       }}
-                      className="w-3 h-3 rounded-full border border-black/15 dark:border-white/20 transition-transform hover:scale-125 cursor-pointer"
+                      className="w-3.5 h-3.5 rounded-full border border-black/15 dark:border-white/20 transition-transform hover:scale-125 cursor-pointer shadow-xs"
                       style={{ backgroundColor: assignedTheme.accentColor }}
                       title={`Folder Theme: ${assignedTheme.name} (Click to change)`}
                     />
@@ -327,6 +310,7 @@ const Sidebar = ({ onCloseMobile }) => {
                             type="button"
                             onClick={() => {
                               setFolderTheme(folder.id, t.id);
+                              setAestheticTheme(t.id);
                               setThemeMenuFolderId(null);
                             }}
                             className={`w-4 h-4 rounded-full transition-transform hover:scale-125 cursor-pointer ${
@@ -495,7 +479,7 @@ const Sidebar = ({ onCloseMobile }) => {
             {tasksPercent === 100 && (
               <div className="flex items-center gap-1 mt-1.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
                 <Sparkles className="w-3 h-3" />
-                <span>All tasks done today! Great job 🌸</span>
+                <span>All tasks completed for today</span>
               </div>
             )}
           </div>

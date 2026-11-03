@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import useSlateStore from '../../store/useSlateStore';
 import { TAG_COLOR_MAP } from '../../utils/theme-config';
-import { Pin, Star, Trash2, Plus, Check, Undo, Trash, Copy } from 'lucide-react';
+import { Pin, Star, Trash2, Plus, Check, Undo, Trash, Copy, Folder } from 'lucide-react';
 
 const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen }) => {
   const {
@@ -182,8 +182,12 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
               disabled={showTrash}
               className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] text-[var(--color-text)] transition-colors cursor-pointer"
             >
-              <span>{noteFolder ? noteFolder.icon : '📁'}</span>
-              <span className="truncate max-w-[90px]">{noteFolder ? noteFolder.name : 'Personal'}</span>
+              {noteFolder ? (
+                <span>{noteFolder.icon}</span>
+              ) : (
+                <Folder className="w-3.5 h-3.5 text-[var(--color-accent)]" />
+              )}
+              <span className="truncate max-w-[90px]">{noteFolder ? noteFolder.name : 'No folder'}</span>
             </button>
 
             {showFolderMenu && (
@@ -197,9 +201,10 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
                     updateNote(note.id, { folderId: null });
                     setShowFolderMenu(false);
                   }}
-                  className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-slate-100 dark:hover:bg-slate-700 font-medium cursor-pointer"
+                  className="w-full text-left px-2.5 py-1.5 rounded-lg text-xs hover:bg-slate-100 dark:hover:bg-slate-700 font-medium cursor-pointer flex items-center gap-1.5"
                 >
-                  📁 No folder
+                  <Folder className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
+                  <span>No folder</span>
                 </button>
                 {folders.map((f) => (
                   <button
