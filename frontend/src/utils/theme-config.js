@@ -1,5 +1,32 @@
 // Bloom Theme Configuration - High-contrast, rich aesthetic stationery palettes
 
+export const TAG_COLOR_MAP = {
+  pink: {
+    badge: 'bg-rose-100/90 text-rose-800 border-rose-200/80 dark:bg-rose-950/50 dark:text-rose-300 dark:border-rose-800/60',
+    dot: '#F43F5E',
+  },
+  lavender: {
+    badge: 'bg-purple-100/90 text-purple-800 border-purple-200/80 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/60',
+    dot: '#A855F7',
+  },
+  mint: {
+    badge: 'bg-emerald-100/90 text-emerald-800 border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60',
+    dot: '#10B981',
+  },
+  sage: {
+    badge: 'bg-teal-100/90 text-teal-800 border-teal-200/80 dark:bg-teal-950/50 dark:text-teal-300 dark:border-teal-800/60',
+    dot: '#14B8A6',
+  },
+  amber: {
+    badge: 'bg-amber-100/90 text-amber-800 border-amber-200/80 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800/60',
+    dot: '#F59E0B',
+  },
+  sky: {
+    badge: 'bg-sky-100/90 text-sky-800 border-sky-200/80 dark:bg-sky-950/50 dark:text-sky-300 dark:border-sky-800/60',
+    dot: '#0EA5E9',
+  },
+};
+
 export const THEMES = [
   {
     id: 'caramel',

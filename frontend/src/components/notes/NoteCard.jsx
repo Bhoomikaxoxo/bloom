@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import useSlateStore from '../../store/useSlateStore';
+import { TAG_COLOR_MAP } from '../../utils/theme-config';
 import { Pin, Star, Trash2, Plus, Check, Undo, Trash, Copy } from 'lucide-react';
 
 const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen }) => {
@@ -422,12 +423,14 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
           {(note.tags || []).slice(0, 2).map((tagId) => {
             const activeTag = tags.find((t) => t.id === tagId);
             if (!activeTag) return null;
+            const styleConfig = TAG_COLOR_MAP[activeTag.color] || TAG_COLOR_MAP.lavender;
             return (
               <span
                 key={tagId}
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[var(--color-text-muted)] border border-black/[0.06] dark:border-white/[0.08]"
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${styleConfig.badge}`}
               >
-                #{activeTag.name}
+                <span className="w-1 h-1 rounded-full" style={{ backgroundColor: styleConfig.dot }} />
+                <span>#{activeTag.name}</span>
               </span>
             );
           })}

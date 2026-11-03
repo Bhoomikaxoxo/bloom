@@ -6,6 +6,7 @@ import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
 import Typography from '@tiptap/extension-typography';
 import useSlateStore from '../../store/useSlateStore';
+import { TAG_COLOR_MAP } from '../../utils/theme-config';
 import {
   X, Pin, Star, Trash2, Bold, Italic, Underline as UnderlineIcon,
   List, ListOrdered, Plus, Check, Trash, Tag, Folder, Type,
@@ -498,9 +499,11 @@ const NoteEditor = ({ note, onClose }) => {
           {(note.tags || []).map((tagId) => {
             const t = tags.find(x => x.id === tagId);
             if (!t) return null;
+            const styleConfig = TAG_COLOR_MAP[t.color] || TAG_COLOR_MAP.lavender;
             return (
-              <span key={tagId} className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200/60">
-                #{t.name}
+              <span key={tagId} className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border flex items-center gap-1.5 ${styleConfig.badge}`}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: styleConfig.dot }} />
+                <span>#{t.name}</span>
               </span>
             );
           })}

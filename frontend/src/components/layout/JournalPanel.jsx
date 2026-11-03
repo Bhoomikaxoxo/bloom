@@ -7,7 +7,7 @@ import Typography from '@tiptap/extension-typography';
 import useSlateStore from '../../store/useSlateStore';
 import {
   Maximize2, Minimize2, Bold, Italic, Underline as UnderlineIcon,
-  List, ListOrdered
+  List, ListOrdered, Feather, Sparkles
 } from 'lucide-react';
 
 const FormatBtn = ({ onClick, active, title, children }) => (
@@ -27,6 +27,13 @@ const FormatBtn = ({ onClick, active, title, children }) => (
     {children}
   </button>
 );
+
+const QUICK_PROMPTS = [
+  { label: '💖 Gratitude', html: '<p><strong>💖 Grateful for:</strong></p><ul><li></li></ul>' },
+  { label: '🌱 Priorities', html: '<p><strong>🌱 Priorities today:</strong></p><ol><li></li><li></li><li></li></ol>' },
+  { label: '☕ Mindful Check-in', html: '<p><strong>☕ How I am feeling right now:</strong></p><p></p>' },
+  { label: '✨ Daily Wins', html: '<p><strong>✨ Small wins today:</strong></p><ul><li></li></ul>' },
+];
 
 const JournalPanel = () => {
   const {
@@ -100,9 +107,15 @@ const JournalPanel = () => {
     <div className="flex flex-col flex-1 h-full overflow-hidden p-5 sm:p-6 bg-[var(--color-card-bg)]">
       {/* Top Date & Focus Header */}
       <div className="flex items-center justify-between mb-3 flex-shrink-0">
-        <span className="text-[11px] font-bold tracking-wider text-[var(--color-text-muted)] uppercase">
-          {todayStr}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold tracking-wider text-[var(--color-text-muted)] uppercase">
+            {todayStr}
+          </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-accent)] opacity-60" />
+          <span className="text-[10px] text-[var(--color-text-muted)] opacity-70">
+            Auto-saving
+          </span>
+        </div>
         <button
           onClick={() => setIsZoomed(!isZoomed)}
           className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
@@ -123,7 +136,7 @@ const JournalPanel = () => {
 
       {/* Formatting Toolbar */}
       {editor && (
-        <div className="flex items-center gap-1 pb-3 mb-2 border-b border-black/[0.06] dark:border-white/[0.08] flex-shrink-0 flex-wrap">
+        <div className="flex items-center gap-1 pb-2.5 mb-2 border-b border-black/[0.06] dark:border-white/[0.08] flex-shrink-0 flex-wrap">
           <FormatBtn
             onClick={() => editor.chain().focus().toggleBold().run()}
             active={editor.isActive('bold')}
@@ -169,7 +182,7 @@ const JournalPanel = () => {
           <button
             type="button"
             onClick={() => setIsCursive(!isCursive)}
-            className={`px-2 py-1 rounded-lg text-xs flex items-center gap-1 transition-all cursor-pointer font-medium ${
+            className={`px-2 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer font-medium ${
               isCursive
                 ? 'bg-[var(--color-accent)] text-white shadow-2xs font-bold'
                 : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
@@ -181,6 +194,27 @@ const JournalPanel = () => {
           </button>
         </div>
       )}
+
+      {/* Cozy Quick Prompts */}
+      <div className="flex items-center gap-1.5 pb-2.5 mb-1 overflow-x-auto scrollbar-none flex-shrink-0">
+        <span className="text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider flex items-center gap-1 flex-shrink-0">
+          <Sparkles className="w-3 h-3 text-amber-400" /> Prompts:
+        </span>
+        {QUICK_PROMPTS.map((p) => (
+          <button
+            key={p.label}
+            type="button"
+            onClick={() => {
+              if (editor) {
+                editor.chain().focus().insertContent(p.html).run();
+              }
+            }}
+            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-black/[0.03] dark:bg-white/[0.05] hover:bg-[var(--color-accent-bg)] hover:text-[var(--color-accent)] border border-black/[0.05] dark:border-white/[0.08] transition-all cursor-pointer whitespace-nowrap flex-shrink-0 active:scale-95"
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
 
       {/* Journal writing area with subtle luxury notebook margin */}
       <div

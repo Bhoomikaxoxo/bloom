@@ -369,6 +369,10 @@ const useSlateStore = create(
           }
           if (Array.isArray(state.notes)) {
             state.notes.forEach((n) => {
+              if (n.id === 'welcome-note' && n.title && n.title.includes('Slate')) {
+                n.title = 'Welcome to Bloom! 🌸✨';
+                n.content = 'Bloom is an aesthetic, serene space for your thoughts, daily journal, and ideas.\n\n✨ Pin or star notes to keep favorites close\n✨ Switch between Grid view and freeform Canvas Board\n✨ Explore dedicated color themes for each folder\n✨ Write in your personal Journal with bold, italic, lists, and cursive handwriting';
+              }
               if (Array.isArray(n.checklist)) {
                 n.checklist.forEach((item) => {
                   if (item.text && item.text.includes('-')) {
