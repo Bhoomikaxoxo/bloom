@@ -313,3 +313,4 @@ const DeviceStorageModal = ({ isOpen, onClose }) => {
 };
 
 export default DeviceStorageModal;
+
