@@ -127,3 +127,4 @@ const QuickCaptureBar = () => {
 };
 
 export default QuickCaptureBar;
+
