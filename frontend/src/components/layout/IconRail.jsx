@@ -2,7 +2,7 @@ import React from 'react';
 import useSlateStore from '../../store/useSlateStore';
 import {
   Clock, Search, CalendarDays, LayoutGrid, BookOpen,
-  FolderTree, ShieldCheck, Flame, Layers
+  FolderTree, ShieldCheck, Flame, Layers, Plus
 } from 'lucide-react';
 
 const IconRail = ({ onOpenStorage, onFocusSearch }) => {
@@ -119,6 +119,19 @@ const IconRail = ({ onOpenStorage, onFocusSearch }) => {
 
         <div className="w-6 h-px bg-white/10 my-1" />
 
+        {/* Quick Add Note / Idea */}
+        <button
+          type="button"
+          onClick={() => {
+            const id = useSlateStore.getState().addNote('text');
+            useSlateStore.getState().setOpenNoteId(id);
+          }}
+          className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-[#A8491F]/20 text-[#A8491F] hover:bg-[#A8491F] hover:text-[#EFE9DC] cursor-pointer"
+          title="New Note (⌘N)"
+        >
+          <Plus className="w-5 h-5 stroke-[2]" />
+        </button>
+
         {/* Folders & Worlds Drawer Toggle */}
         <button
           type="button"
@@ -153,3 +166,4 @@ const IconRail = ({ onOpenStorage, onFocusSearch }) => {
 };
 
 export default IconRail;
+

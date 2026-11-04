@@ -196,8 +196,36 @@ const DailySpineView = () => {
         primaryText: null,
       };
     }
-    return null;
-  }, [todayAnchor, inProgressItem, slippingItem, spineItems, todayStr, tomorrowStr]);
+
+    const firstUncompleted = todayItems.find((n) => n.status !== 'completed');
+    if (firstUncompleted) {
+      return {
+        eyebrow: 'focus — prioritized today',
+        claim: firstUncompleted.title,
+        sub: firstUncompleted.timeBlock
+          ? `Scheduled for ${firstUncompleted.timeBlock}. Guard your attention for this.`
+          : 'No time set yet. Give it a specific time to follow through.',
+        primaryAction: (e) => handleToggleTask(firstUncompleted, e),
+        primaryText: 'Finish now',
+        secondaryAction: () => {
+          const t = prompt('Attach a focus time block (e.g. 14:00):');
+          if (t) scheduleItem(firstUncompleted.id, todayStr, t);
+        },
+        secondaryText: 'Give it a time',
+      };
+    }
+
+    return {
+      eyebrow: 'daily anchor — guard your attention',
+      claim: 'What is the one commitment that anchors today?',
+      sub: 'Type in the box below to capture your first priority and lock a time.',
+      primaryAction: () => {
+        const input = document.querySelector('input[placeholder*="Water the plants"]');
+        if (input) input.focus();
+      },
+      primaryText: 'Set today\'s anchor',
+    };
+  }, [todayAnchor, inProgressItem, slippingItem, spineItems, todayItems, todayStr, tomorrowStr]);
 
   return (
     <div className="flex-1 overflow-y-auto bg-[var(--bone,#EFE9DC)] py-8 sm:py-11 px-5 sm:px-8 select-text transition-colors">
@@ -306,12 +334,11 @@ const DailySpineView = () => {
             value={quickInput}
             onChange={(e) => setQuickInput(e.target.value)}
             placeholder="Water the plants, 9am…"
-            className="flex-1 bg-[var(--card,#F7F4EC)] border border-[var(--line,#D8D0BC)] rounded-xl px-4 py-3 text-[14.5px] font-sans text-[var(--ink,#1B2420)] placeholder:text-[var(--sage-dim,#9DAC95)] outline-none focus:border-[var(--gold,#C9A135)] shadow-2xs transition-all"
+            className="flex-1 bg-[var(--card,#F7F4EC)] border border-[var(--line,#D8D0BC)] rounded-xl px-4 py-3.5 text-[14.5px] font-sans text-[var(--ink,#1B2420)] placeholder:text-[var(--sage-dim,#9DAC95)] outline-none focus:border-[var(--gold,#C9A135)] shadow-2xs transition-all"
           />
           <button
             type="submit"
-            disabled={!quickInput.trim()}
-            className="bg-[var(--ink,#1B2420)] hover:bg-[var(--ink-soft,#3A463E)] disabled:opacity-40 text-[var(--bone,#EFE9DC)] border-none rounded-xl px-5 text-[13.5px] font-sans font-medium transition-all cursor-pointer shadow-xs"
+            className="bg-[var(--ink,#1B2420)] hover:bg-[var(--ink-soft,#3A463E)] active:scale-95 text-[var(--bone,#EFE9DC)] border-none rounded-xl px-6 text-[14px] font-sans font-medium transition-all cursor-pointer shadow-xs"
           >
             Add
           </button>
@@ -432,8 +459,7 @@ const DailySpineView = () => {
                   />
                   <button
                     type="submit"
-                    disabled={!reflectionInput.trim()}
-                    className="bg-[var(--ink-soft,#3A463E)] hover:bg-[var(--ink,#1B2420)] disabled:opacity-40 text-[var(--bone,#EFE9DC)] rounded-xl px-3.5 text-xs font-sans font-medium cursor-pointer"
+                    className="bg-[var(--ink,#1B2420)] hover:bg-[var(--ink-soft,#3A463E)] active:scale-95 text-[var(--bone,#EFE9DC)] rounded-xl px-4 py-2 text-xs font-sans font-medium cursor-pointer shadow-2xs transition-all"
                   >
                     Save
                   </button>

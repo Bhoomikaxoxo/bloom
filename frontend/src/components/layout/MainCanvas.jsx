@@ -196,11 +196,12 @@ const MainCanvas = () => {
   const isFilteredOrSpecial = Boolean(activeFolderId || activeTagId || showTrash || showFavorites);
 
   return (
-    <main className="flex-1 flex flex-col h-screen overflow-hidden transition-colors select-none bg-[#F8F6F1]">
+    <main className="flex-1 flex flex-col h-screen overflow-hidden transition-colors select-none bg-[var(--bone,#EFE9DC)]">
       {/* =========================================================================
-          TOP NAVIGATION BAR: Clean, Minimal, Aesthetic, Zero Emojis (Bloom v2)
+          TOP NAVIGATION BAR: Only rendered for Desk Canvas / Folders / Filtered views
           ========================================================================= */}
-      <header className="h-14 px-5 sm:px-6 border-b border-[var(--line,#D8D0BC)] bg-[var(--bone,#EFE9DC)]/95 backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
+      {(workspaceView === 'canvas' || isFilteredOrSpecial) && (
+        <header className="h-14 px-5 sm:px-6 border-b border-[var(--line,#D8D0BC)] bg-[var(--bone,#EFE9DC)]/95 backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
         
         {/* Zone 1 (Left): View Title & Filter Breadcrumb */}
         <div className="flex items-center gap-3 min-w-0">
@@ -371,6 +372,7 @@ const MainCanvas = () => {
           )}
         </div>
       </header>
+      )}
 
       {/* =========================================================================
           WORKSPACE CONTENT AREA: Attention Spine, Calendar, Journal, or Desk Canvas

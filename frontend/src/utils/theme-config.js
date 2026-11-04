@@ -293,24 +293,22 @@ export const applyTheme = (theme) => {
   root.style.setProperty('--color-card-border', theme.cardBorder);
   root.style.setProperty('--color-grid-dot', theme.gridColor);
 
-  // Bloom v2 Botanical Linen Tokens
-  root.style.setProperty('--bone', theme.paperColor || '#EFE9DC');
-  root.style.setProperty('--bone-dim', theme.sidebarBg || '#E4DDCC');
-  root.style.setProperty('--ink', theme.inkColor || '#1B2420');
-  root.style.setProperty('--ink-soft', theme.mutedColor || '#3A463E');
-  root.style.setProperty('--card', theme.cardBg || '#F7F4EC');
-  root.style.setProperty('--line', theme.cardBorder || '#D8D0BC');
+  // Bloom v2 Botanical Linen Tokens - Always preserve iconic classy linen & forest ink
+  root.style.setProperty('--bone', '#EFE9DC');
+  root.style.setProperty('--bone-dim', '#E4DDCC');
+  root.style.setProperty('--ink', '#1B2420');
+  root.style.setProperty('--ink-soft', '#3A463E');
+  root.style.setProperty('--card', '#F7F4EC');
+  root.style.setProperty('--line', '#D8D0BC');
   root.style.setProperty('--sage', '#6B7F63');
   root.style.setProperty('--sage-dim', '#9DAC95');
   root.style.setProperty('--brick', '#A8491F');
   root.style.setProperty('--gold', '#C9A135');
   root.style.setProperty('--rail', '#1B2420');
 
-  if (theme.gradient) {
-    root.style.setProperty('--color-bg-from', theme.gradient.from);
-    root.style.setProperty('--color-bg-via', theme.gradient.via);
-    root.style.setProperty('--color-bg-to', theme.gradient.to);
-  }
+  root.style.setProperty('--color-bg-from', '#EFE9DC');
+  root.style.setProperty('--color-bg-via', '#EFE9DC');
+  root.style.setProperty('--color-bg-to', '#E4DDCC');
 
   if (theme.isDark) {
     root.classList.add('dark');

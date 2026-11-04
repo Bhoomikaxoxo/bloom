@@ -103,7 +103,7 @@ const useSlateStore = create(
       journalViewMode: 'notes',
       journals: {},
       activeAestheticTheme: 'bloom-v2',
-      sidebarCollapsed: false,
+      sidebarCollapsed: true,
       folderThemes: {
         'folder-work': 'matcha',
         'folder-personal': 'rose',
@@ -708,6 +708,12 @@ const useSlateStore = create(
           }
 
           state.folderThemes = { ...defaultThemes, ...(state.folderThemes || {}) };
+
+          // Enforce signature classy Bloom v2 theme and collapsed collections drawer
+          if (state.activeAestheticTheme !== 'bloom-v2') {
+            state.activeAestheticTheme = 'bloom-v2';
+          }
+          state.sidebarCollapsed = true;
 
           if (state.activeFolderId) {
             const activeF = (state.folders || []).find((f) => f.id === state.activeFolderId);
