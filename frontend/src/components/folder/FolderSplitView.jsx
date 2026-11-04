@@ -33,6 +33,7 @@ const FormatBtn = ({ onClick, active, title, children }) => (
 const FolderSplitView = ({ folder }) => {
   const {
     notes = [],
+    folders = [],
     journals = {},
     updateJournal,
     quickCapture,
@@ -40,6 +41,7 @@ const FolderSplitView = ({ folder }) => {
     deleteNote,
     updateNote,
     setOpenNoteId,
+    setActiveFolderId,
     triggerConfetti,
     highlightedCardId,
     setHighlightedCardId,
@@ -312,6 +314,28 @@ const FolderSplitView = ({ folder }) => {
               <span style={{ fontFamily: "'Caveat', cursive", fontSize: '15px' }}>Cursive</span>
             </button>
           </div>
+        </div>
+
+        {/* Inline Folder Selector Row */}
+        <div className="px-6 py-2 bg-[var(--bone-dim,#E4DDCC)]/40 border-b border-[var(--line,#D8D0BC)] flex items-center gap-1.5 overflow-x-auto flex-shrink-0">
+          <span className="text-[11px] font-sans font-medium text-[var(--sage,#6B7F63)] mr-1">
+            Folders:
+          </span>
+          {folders.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setActiveFolderId(f.id)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-sans transition-all flex items-center gap-1.5 cursor-pointer ${
+                f.id === folderId
+                  ? 'bg-[var(--card,#F7F4EC)] text-[var(--ink,#1B2420)] font-semibold border border-[var(--line,#D8D0BC)] shadow-2xs'
+                  : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)] hover:bg-black/5'
+              }`}
+            >
+              <span>{f.icon || '📁'}</span>
+              <span>{f.name}</span>
+            </button>
+          ))}
         </div>
 
         {/* Formatting Toolbar */}
@@ -714,3 +738,4 @@ const FolderSplitView = ({ folder }) => {
 };
 
 export default FolderSplitView;
+

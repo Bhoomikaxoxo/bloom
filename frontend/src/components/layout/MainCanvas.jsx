@@ -201,10 +201,9 @@ const MainCanvas = () => {
   return (
     <main className="flex-1 flex flex-col h-screen overflow-hidden transition-colors select-none bg-[var(--bone,#EFE9DC)]">
       {/* =========================================================================
-          TOP NAVIGATION BAR: Rendered for Desk Canvas / Folders / Notes / Filtered views
+          TOP NAVIGATION BAR: Rendered across all views for unified navigation & search
           ========================================================================= */}
-      {(workspaceView === 'canvas' || isFilteredOrSpecial || workspaceView === 'notes' || workspaceView === 'journal') && (
-        <header className="h-14 px-5 sm:px-6 border-b border-[var(--line,#D8D0BC)] bg-[var(--bone,#EFE9DC)]/95 backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
+      <header className="h-14 px-5 sm:px-6 border-b border-[var(--line,#D8D0BC)] bg-[var(--bone,#EFE9DC)]/95 backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
         
         {/* Zone 1 (Left): View Title & Filter Breadcrumb */}
         <div className="flex items-center gap-3 min-w-0">
@@ -319,9 +318,31 @@ const MainCanvas = () => {
               <span>Today</span>
             </button>
 
+            {/* Split View (Notes & Tasks) */}
             <button
               type="button"
               onClick={() => {
+                const targetFolderId = activeFolderId || folders[0]?.id || 'folder-work';
+                setActiveFolderId(targetFolderId);
+                useSlateStore.getState().setFolderViewMode('split');
+                setWorkspaceView('split');
+              }}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                workspaceView === 'split' || (activeFolderId && folderViewMode === 'split')
+                  ? 'bg-[var(--card,#F7F4EC)] text-[var(--brick,#A8491F)] shadow-xs font-semibold'
+                  : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
+              }`}
+              title="Split View: Manuscript Notes on Left, Tasks & Context Cards on Right"
+            >
+              <Columns className="w-3.5 h-3.5 text-[var(--brick,#A8491F)]" />
+              <span>Split View</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveFolderId(null);
+                setActiveTagId(null);
                 setWorkspaceView('canvas');
               }}
               className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
@@ -419,7 +440,6 @@ const MainCanvas = () => {
           )}
         </div>
       </header>
-      )}
 
       {/* =========================================================================
           WORKSPACE CONTENT AREA: Attention Spine, Calendar, Journal, or Desk Canvas
@@ -440,13 +460,13 @@ const MainCanvas = () => {
           <JournalPanel />
         )}
 
-        {/* LENS 4: Folder Split View (Notes & Tasks side-by-side) */}
-        {activeFolder && folderViewMode === 'split' && !showTrash && !showFavorites && (
-          <FolderSplitView folder={activeFolder} />
+        {/* LENS 4: Split View (Notes & Tasks side-by-side) */}
+        {((workspaceView === 'split') || (activeFolder && folderViewMode === 'split')) && !showTrash && !showFavorites && (
+          <FolderSplitView folder={activeFolder || folders[0] || { id: 'folder-work', name: 'Work', icon: '💼', theme: 'matcha' }} />
         )}
 
         {/* LENS 5: Desk Canvas (All Collections, Folder filtering, Tactile cards) */}
-        {(workspaceView === 'canvas' || isFilteredOrSpecial) && (!activeFolder || folderViewMode !== 'split' || showTrash || showFavorites) && (
+        {workspaceView !== 'split' && (workspaceView === 'canvas' || isFilteredOrSpecial) && (!activeFolder || folderViewMode !== 'split' || showTrash || showFavorites) && (
           <div className="flex-1 overflow-auto bg-paper-grain relative p-5 sm:p-7">
             <div className={viewMode === 'grid' || showTrash ? 'max-w-6xl mx-auto w-full' : ''}>
               

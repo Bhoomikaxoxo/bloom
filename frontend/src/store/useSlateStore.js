@@ -716,6 +716,10 @@ const useSlateStore = create(
           }
 
           state.folderThemes = { ...defaultThemes, ...(state.folderThemes || {}) };
+          state.folderViewMode = state.folderViewMode || 'split';
+          if (!state.activeAestheticTheme || state.activeAestheticTheme !== 'bloom-v2') {
+            state.activeAestheticTheme = 'bloom-v2';
+          }
 
           if (state.activeFolderId) {
             const activeF = (state.folders || []).find((f) => f.id === state.activeFolderId);

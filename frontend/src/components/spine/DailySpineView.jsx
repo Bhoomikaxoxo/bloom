@@ -3,7 +3,7 @@ import useSlateStore from '../../store/useSlateStore';
 import {
   Clock, Check, Sparkles, AlertCircle, ArrowRight,
   CalendarDays, Plus, FileText, CheckSquare, Trash2,
-  ChevronRight, BookmarkCheck, Feather
+  ChevronRight, BookmarkCheck, Feather, Columns
 } from 'lucide-react';
 
 const DailySpineView = () => {
@@ -240,7 +240,8 @@ const DailySpineView = () => {
                 type="button"
                 onClick={() => {
                   setActiveFolderId(f.id);
-                  setWorkspaceView('canvas');
+                  useSlateStore.getState().setFolderViewMode('split');
+                  setWorkspaceView('split');
                 }}
                 className="text-[12.5px] font-sans font-normal px-3 py-1.5 rounded-full border border-[var(--line,#D8D0BC)] bg-[var(--card,#F7F4EC)] text-[var(--ink-soft,#3A463E)] flex items-center gap-2 hover:border-[var(--sage,#6B7F63)] transition-all cursor-pointer shadow-2xs"
               >
@@ -253,6 +254,22 @@ const DailySpineView = () => {
             );
           })}
           
+          {/* Direct Split View Button */}
+          <button
+            type="button"
+            onClick={() => {
+              const targetFolderId = folders[0]?.id || 'folder-work';
+              setActiveFolderId(targetFolderId);
+              useSlateStore.getState().setFolderViewMode('split');
+              setWorkspaceView('split');
+            }}
+            className="text-[12.5px] font-sans px-3 py-1.5 rounded-full bg-[var(--card,#F7F4EC)] border border-[var(--brick,#A8491F)]/40 text-[var(--brick,#A8491F)] hover:bg-[var(--brick,#A8491F)] hover:text-white transition-all cursor-pointer font-medium flex items-center gap-1.5 shadow-2xs"
+            title="Open Split View with Notes on Left and Tasks on Right"
+          >
+            <Columns className="w-3.5 h-3.5" />
+            <span>Split View</span>
+          </button>
+
           <button
             type="button"
             onClick={toggleSidebarCollapsed}

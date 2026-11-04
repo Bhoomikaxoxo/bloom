@@ -7,7 +7,7 @@ import DeviceStorageModal from '../ui/DeviceStorageModal';
 import {
   Plus, Star, FileText, Trash2, HelpCircle, CheckSquare,
   CalendarDays, ShieldCheck, Compass, LayoutGrid, BookOpen,
-  X, Check, Flame, ChevronRight
+  X, Check, Flame, ChevronRight, Columns
 } from 'lucide-react';
 
 const Sidebar = ({ onCloseMobile }) => {
@@ -107,6 +107,13 @@ const Sidebar = ({ onCloseMobile }) => {
       setActiveTagId(null);
       setShowTrash(false);
       setShowFavorites(false);
+    } else if (type === 'split') {
+      const targetFolderId = activeFolderId || folders[0]?.id || 'folder-work';
+      setActiveFolderId(targetFolderId);
+      useSlateStore.getState().setFolderViewMode('split');
+      setWorkspaceView('split');
+      setShowTrash(false);
+      setShowFavorites(false);
     } else if (type === 'favorites') {
       setWorkspaceView('canvas');
       setShowFavorites(true);
@@ -120,7 +127,8 @@ const Sidebar = ({ onCloseMobile }) => {
       setActiveTagId(null);
       setShowTrash(false);
       setShowFavorites(false);
-      setWorkspaceView('canvas');
+      useSlateStore.getState().setFolderViewMode('split');
+      setWorkspaceView('split');
       if (folderTheme && setAestheticTheme) {
         setAestheticTheme(folderTheme);
       }
@@ -171,6 +179,24 @@ const Sidebar = ({ onCloseMobile }) => {
           <span className="flex items-center gap-1 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full bg-[#FAF5EE] text-[#C2531C] border border-[#EBDCBF]">
             <Flame className="w-2.5 h-2.5 text-[#C2531C] fill-[#C2531C]" />
             {followThroughStreak}d
+          </span>
+        </button>
+
+        {/* Split View (Notes & Tasks) */}
+        <button
+          onClick={() => selectView('split')}
+          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+            workspaceView === 'split' || (activeFolderId && folderViewMode === 'split')
+              ? 'bg-[#FDF4EF] text-[#A8491F] font-bold shadow-2xs border border-[#F2DDD1]'
+              : 'text-[#1F1D1A] dark:text-[#E8E3D8] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <Columns className="w-4 h-4 text-[#A8491F]" />
+            <span>Split View (Notes &amp; Tasks)</span>
+          </div>
+          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-[#A8491F]/10 text-[#A8491F] font-semibold">
+            Split
           </span>
         </button>
 
@@ -312,7 +338,7 @@ const Sidebar = ({ onCloseMobile }) => {
         <div className="space-y-0.5">
           {folders.map((folder) => {
             const count = notes.filter((n) => n.folderId === folder.id && n.deletedAt === null).length;
-            const isSelected = activeFolderId === folder.id && !showTrash && !showFavorites && workspaceView === 'canvas';
+            const isSelected = activeFolderId === folder.id && !showTrash && !showFavorites && (workspaceView === 'canvas' || workspaceView === 'split');
             const assignedThemeId = folder.theme || folderThemes?.[folder.id] || 'caramel';
             const assignedTheme = THEMES.find((t) => t.id === assignedThemeId) || THEMES[0];
 

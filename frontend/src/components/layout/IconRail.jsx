@@ -2,7 +2,7 @@ import React from 'react';
 import useSlateStore from '../../store/useSlateStore';
 import {
   Clock, Search, CalendarDays, LayoutGrid, BookOpen,
-  FolderTree, ShieldCheck, Flame, Layers
+  FolderTree, ShieldCheck, Flame, Layers, Columns, Plus
 } from 'lucide-react';
 
 const IconRail = ({ onOpenStorage, onFocusSearch }) => {
@@ -12,6 +12,8 @@ const IconRail = ({ onOpenStorage, onFocusSearch }) => {
     sidebarCollapsed,
     toggleSidebarCollapsed,
     followThroughStreak = 1,
+    activeFolderId,
+    folderViewMode,
     setActiveFolderId,
     setActiveTagId,
     setShowTrash,
@@ -19,10 +21,17 @@ const IconRail = ({ onOpenStorage, onFocusSearch }) => {
   } = useSlateStore();
 
   const handleNav = (view) => {
-    setActiveFolderId(null);
-    setActiveTagId(null);
     setShowTrash(false);
     setShowFavorites(false);
+    if (view === 'split') {
+      const currentFolderId = activeFolderId || useSlateStore.getState().folders[0]?.id || 'folder-work';
+      setActiveFolderId(currentFolderId);
+      useSlateStore.getState().setFolderViewMode('split');
+      setWorkspaceView('split');
+      return;
+    }
+    setActiveFolderId(null);
+    setActiveTagId(null);
     setWorkspaceView(view);
   };
 
@@ -87,6 +96,20 @@ const IconRail = ({ onOpenStorage, onFocusSearch }) => {
           title="Calendar & Planner"
         >
           <CalendarDays className="w-5 h-5 stroke-[1.7]" />
+        </button>
+
+        {/* Split View: Notes & Tasks */}
+        <button
+          type="button"
+          onClick={() => handleNav('split')}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+            workspaceView === 'split' || (activeFolderId && folderViewMode === 'split')
+              ? 'bg-[#A8491F]/25 text-[#A8491F] font-bold shadow-xs'
+              : 'hover:text-[#EFE9DC] hover:bg-white/[0.06]'
+          }`}
+          title="Split View (Notes & Tasks)"
+        >
+          <Columns className="w-5 h-5 stroke-[1.8]" />
         </button>
 
         {/* Everything / Desk Canvas */}
