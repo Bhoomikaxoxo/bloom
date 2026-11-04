@@ -198,37 +198,37 @@ const MainCanvas = () => {
   return (
     <main className="flex-1 flex flex-col h-screen overflow-hidden transition-colors select-none bg-[#F8F6F1]">
       {/* =========================================================================
-          TOP NAVIGATION BAR: Clean, Minimal, Aesthetic, Zero Emojis
+          TOP NAVIGATION BAR: Clean, Minimal, Aesthetic, Zero Emojis (Bloom v2)
           ========================================================================= */}
-      <header className="h-16 px-5 sm:px-6 border-b border-[#E8E3D8] bg-[#F8F6F1]/90 backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
+      <header className="h-14 px-5 sm:px-6 border-b border-[var(--line,#D8D0BC)] bg-[var(--bone,#EFE9DC)]/95 backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
         
         {/* Zone 1 (Left): View Title & Filter Breadcrumb */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex-shrink-0 flex items-center justify-center">
             {showTrash ? (
-              <Trash2 className="w-5 h-5 text-rose-600" />
+              <Trash2 className="w-4 h-4 text-[var(--brick,#A8491F)]" />
             ) : showFavorites ? (
-              <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
+              <Star className="w-4 h-4 text-[var(--gold,#C9A135)] fill-[var(--gold,#C9A135)]" />
             ) : activeFolder ? (
-              <span className="text-xl leading-none">{activeFolder.icon}</span>
+              <span className="text-lg leading-none">{activeFolder.icon}</span>
             ) : activeTag ? (
-              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#FDF8F5] text-[#C2531C] border border-[#F2DDD1]">#</span>
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[var(--card,#F7F4EC)] text-[var(--brick,#A8491F)] border border-[var(--line,#D8D0BC)]">#</span>
             ) : workspaceView === 'spine' ? (
-              <Compass className="w-5 h-5 text-[#C2531C]" />
+              <Compass className="w-4 h-4 text-[var(--gold,#C9A135)]" />
             ) : workspaceView === 'calendar' ? (
-              <CalendarDays className="w-5 h-5 text-[#244A38]" />
+              <CalendarDays className="w-4 h-4 text-[var(--sage,#6B7F63)]" />
             ) : workspaceView === 'journal' ? (
-              <BookOpen className="w-5 h-5 text-[#7D5E29]" />
+              <BookOpen className="w-4 h-4 text-[var(--brick,#A8491F)]" />
             ) : (
-              <LayoutGrid className="w-5 h-5 text-[#C2531C]" />
+              <LayoutGrid className="w-4 h-4 text-[var(--ink,#1B2420)]" />
             )}
           </div>
 
           <div className="flex items-center gap-2 truncate">
-            <h2 className="text-sm sm:text-base font-serif font-bold text-[#1F1D1A] tracking-tight truncate">
+            <h2 className="text-sm font-sans font-medium text-[var(--ink,#1B2420)] tracking-tight truncate">
               {currentViewTitle}
             </h2>
-            <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-black/[0.05] text-[#6B665F] flex-shrink-0">
+            <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-black/[0.04] text-[var(--ink-soft,#3A463E)] flex-shrink-0">
               {baseNotesInView.length}
             </span>
 
@@ -243,7 +243,7 @@ const MainCanvas = () => {
                   if (showFavorites) useSlateStore.getState().setShowFavorites(false);
                   setWorkspaceView('canvas');
                 }}
-                className="hidden md:flex items-center gap-1 text-[10px] font-semibold text-[#6B665F] hover:text-red-500 bg-black/[0.03] hover:bg-red-50 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
+                className="hidden md:flex items-center gap-1 text-[10px] font-sans text-[var(--sage-dim,#9DAC95)] hover:text-red-500 bg-black/[0.02] hover:bg-red-50 px-2 py-0.5 rounded-full transition-colors cursor-pointer"
                 title="Clear filter and view all notes"
               >
                 <span>Clear</span>
@@ -254,7 +254,7 @@ const MainCanvas = () => {
         </div>
 
         {/* Zone 2 (Center): Segmented Cognitive Lenses Switcher */}
-        <div className="hidden lg:flex items-center bg-black/[0.04] p-0.5 rounded-full border border-[#E8E3D8] shadow-2xs">
+        <div className="hidden lg:flex items-center bg-black/[0.03] p-0.5 rounded-full border border-[var(--line,#D8D0BC)] shadow-2xs font-sans">
           <button
             type="button"
             onClick={() => {
@@ -262,14 +262,14 @@ const MainCanvas = () => {
               setActiveTagId(null);
               setWorkspaceView('spine');
             }}
-            className={`px-3 py-1 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
               workspaceView === 'spine' && !isFilteredOrSpecial
-                ? 'bg-white text-[#C2531C] shadow-xs font-bold'
-                : 'text-[#6B665F] hover:text-[#1F1D1A]'
+                ? 'bg-[var(--card,#F7F4EC)] text-[var(--gold,#C9A135)] shadow-xs font-semibold'
+                : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
             }`}
           >
-            <Compass className="w-3.5 h-3.5 text-[#C2531C]" />
-            <span>Daily Flow</span>
+            <Compass className="w-3.5 h-3.5 text-[var(--gold,#C9A135)]" />
+            <span>Today</span>
           </button>
 
           <button
@@ -277,13 +277,13 @@ const MainCanvas = () => {
             onClick={() => {
               setWorkspaceView('canvas');
             }}
-            className={`px-3 py-1 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
               workspaceView === 'canvas' || isFilteredOrSpecial
-                ? 'bg-white text-[#7D5E29] shadow-xs font-bold'
-                : 'text-[#6B665F] hover:text-[#1F1D1A]'
+                ? 'bg-[var(--card,#F7F4EC)] text-[var(--ink,#1B2420)] shadow-xs font-semibold'
+                : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
             }`}
           >
-            <LayoutGrid className="w-3.5 h-3.5 text-[#7D5E29]" />
+            <LayoutGrid className="w-3.5 h-3.5 text-[var(--sage,#6B7F63)]" />
             <span>Desk Canvas</span>
           </button>
 
@@ -292,13 +292,13 @@ const MainCanvas = () => {
             onClick={() => {
               setWorkspaceView('calendar');
             }}
-            className={`px-3 py-1 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
               workspaceView === 'calendar'
-                ? 'bg-white text-[#244A38] shadow-xs font-bold'
-                : 'text-[#6B665F] hover:text-[#1F1D1A]'
+                ? 'bg-[var(--card,#F7F4EC)] text-[var(--sage,#6B7F63)] shadow-xs font-semibold'
+                : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
             }`}
           >
-            <CalendarDays className="w-3.5 h-3.5 text-[#244A38]" />
+            <CalendarDays className="w-3.5 h-3.5 text-[var(--sage,#6B7F63)]" />
             <span>Calendar</span>
           </button>
 
@@ -307,13 +307,13 @@ const MainCanvas = () => {
             onClick={() => {
               setWorkspaceView('journal');
             }}
-            className={`px-3 py-1 text-xs font-semibold rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
               workspaceView === 'journal'
-                ? 'bg-white text-[#58446B] shadow-xs font-bold'
-                : 'text-[#6B665F] hover:text-[#1F1D1A]'
+                ? 'bg-[var(--card,#F7F4EC)] text-[var(--brick,#A8491F)] shadow-xs font-semibold'
+                : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
             }`}
           >
-            <BookOpen className="w-3.5 h-3.5 text-[#58446B]" />
+            <BookOpen className="w-3.5 h-3.5 text-[var(--brick,#A8491F)]" />
             <span>Journal</span>
           </button>
         </div>
@@ -321,15 +321,15 @@ const MainCanvas = () => {
         {/* Zone 3 (Right): Search, Theme, & Creation Actions */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           {/* Omni-Search Bar */}
-          <div className="relative w-36 sm:w-52 md:w-60">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
+          <div className="relative w-36 sm:w-48 md:w-56">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--sage-dim,#9DAC95)] pointer-events-none" />
             <input
               ref={searchRef}
               type="text"
               placeholder="Search (⌘K)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-7 py-1.5 bg-black/[0.03] text-[#1F1D1A] rounded-full text-xs font-medium outline-none border border-[#E8E3D8] focus:border-[#C2531C] focus:bg-white transition-all placeholder:text-stone-400"
+              className="w-full pl-8 pr-7 py-1 bg-[var(--card,#F7F4EC)] text-[var(--ink,#1B2420)] rounded-full text-xs font-sans outline-none border border-[var(--line,#D8D0BC)] focus:border-[var(--gold,#C9A135)] transition-all placeholder:text-[var(--sage-dim,#9DAC95)]"
             />
             {searchQuery && (
               <button
@@ -352,19 +352,19 @@ const MainCanvas = () => {
               <button
                 type="button"
                 onClick={() => handleCreateNote('text')}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C2531C] hover:bg-[#A63E0F] text-white rounded-full text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
+                className="flex items-center gap-1 px-3 py-1 bg-[var(--ink,#1B2420)] hover:bg-[var(--ink-soft,#3A463E)] text-[var(--bone,#EFE9DC)] rounded-full text-xs font-sans font-medium shadow-2xs transition-all active:scale-95 cursor-pointer"
                 title="New Note (⌘N)"
               >
-                <Plus className="w-3.5 h-3.5" />
+                <Plus className="w-3 h-3 text-[var(--gold,#C9A135)]" />
                 <span>Note</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleCreateNote('checklist')}
-                className="hidden md:flex items-center gap-1 px-2.5 py-1.5 bg-white border border-[#E8E3D8] text-[#1F1D1A] hover:bg-[#FAF6F0] rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
+                className="hidden md:flex items-center gap-1 px-2.5 py-1 bg-[var(--card,#F7F4EC)] border border-[var(--line,#D8D0BC)] text-[var(--ink,#1B2420)] hover:border-[var(--sage,#6B7F63)] rounded-full text-xs font-sans font-medium transition-all active:scale-95 cursor-pointer shadow-2xs"
                 title="New Checklist (⇧⌘N)"
               >
-                <CheckSquare className="w-3.5 h-3.5 text-[#C2531C]" />
+                <CheckSquare className="w-3 h-3 text-[var(--sage,#6B7F63)]" />
                 <span>List</span>
               </button>
             </div>

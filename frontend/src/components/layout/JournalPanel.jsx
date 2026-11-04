@@ -21,8 +21,8 @@ const FormatBtn = ({ onClick, active, title, children }) => (
     title={title}
     className={`p-1.5 rounded-lg text-xs transition-all cursor-pointer flex items-center justify-center ${
       active
-        ? 'bg-[#C2531C] text-white shadow-2xs font-bold'
-        : 'text-[#6B665F] hover:text-[#1F1D1A] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
+        ? 'bg-[var(--ink,#1B2420)] text-[var(--bone,#EFE9DC)] shadow-2xs font-semibold'
+        : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]'
     }`}
   >
     {children}
@@ -162,15 +162,15 @@ const JournalPanel = ({ onClose }) => {
   };
 
   const renderContent = (isLightbox = false) => (
-    <div className="flex flex-col flex-1 h-full overflow-hidden p-5 sm:p-7 bg-[#FDFCF9] select-text">
+    <div className="flex flex-col flex-1 h-full overflow-hidden p-5 sm:p-7 bg-[var(--bone,#EFE9DC)] select-text">
       {/* Top Temporal Navigator */}
-      <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#E8E3D8] flex-shrink-0">
+      <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--line,#D8D0BC)] flex-shrink-0">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-black/[0.04] dark:bg-white/[0.06] rounded-full p-0.5 border border-[#E8E3D8]">
+          <div className="flex items-center gap-1 bg-[var(--card,#F7F4EC)] rounded-full p-0.5 border border-[var(--line,#D8D0BC)] shadow-2xs">
             <button
               type="button"
               onClick={prevDay}
-              className="p-1 rounded-full text-[#6B665F] hover:text-[#1F1D1A] hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer"
+              className="p-1 rounded-full text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)] hover:bg-black/5 dark:hover:bg-white/10 transition-all cursor-pointer"
               title="Previous Day"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -178,10 +178,10 @@ const JournalPanel = ({ onClose }) => {
             <button
               type="button"
               onClick={jumpToToday}
-              className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
+              className={`px-2.5 py-0.5 rounded-full text-[11px] font-sans font-semibold transition-all cursor-pointer ${
                 isToday
-                  ? 'bg-[#C2531C] text-white shadow-2xs'
-                  : 'text-[#6B665F] hover:text-[#1F1D1A]'
+                  ? 'bg-[var(--ink,#1B2420)] text-[var(--bone,#EFE9DC)] shadow-2xs'
+                  : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
               }`}
             >
               Today
@@ -189,14 +189,14 @@ const JournalPanel = ({ onClose }) => {
             <button
               type="button"
               onClick={nextDay}
-              className="p-1 rounded-full text-[#6B665F] hover:text-[#1F1D1A] hover:bg-white dark:hover:bg-slate-700 transition-all cursor-pointer"
+              className="p-1 rounded-full text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)] hover:bg-black/5 dark:hover:bg-white/10 transition-all cursor-pointer"
               title="Next Day"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <span className="text-xs font-serif font-semibold text-[#1F1D1A] hidden sm:inline ml-1">
+          <span className="text-xs font-serif italic font-medium text-[var(--ink,#1B2420)] hidden sm:inline ml-1">
             {displayDateFormatted}
           </span>
         </div>
@@ -206,16 +206,16 @@ const JournalPanel = ({ onClose }) => {
           <button
             type="button"
             onClick={handleExtractTasks}
-            className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-[#FAF5EB] text-[#7D5E29] border border-[#EBDCBF] hover:bg-[#F2E7D3] transition-all cursor-pointer"
+            className="flex items-center gap-1.5 text-[11px] font-sans font-medium px-3 py-1 rounded-lg bg-[var(--card,#F7F4EC)] text-[var(--ink,#1B2420)] border border-[var(--line,#D8D0BC)] hover:border-[var(--sage,#6B7F63)] transition-all cursor-pointer shadow-2xs"
             title="Convert notes and bullet points into scheduled tasks"
           >
-            <CheckSquare className="w-3.5 h-3.5 text-[#C2531C]" />
+            <CheckSquare className="w-3.5 h-3.5 text-[var(--brick,#A8491F)]" />
             <span>{taskSentNotice ? 'Added to Tasks!' : 'Send to Tasks'}</span>
           </button>
 
           <button
             onClick={() => setIsZoomed(!isZoomed)}
-            className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-[#6B665F] hover:text-[#1F1D1A]"
+            className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]"
             title={isZoomed ? 'Exit Focus Mode' : 'Focus Mode'}
           >
             {isZoomed ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -229,12 +229,12 @@ const JournalPanel = ({ onClose }) => {
         value={currentJournalData.title || ''}
         onChange={handleTitleChange}
         placeholder={`Notes for ${displayDateFormatted}…`}
-        className="w-full bg-transparent outline-none font-serif font-bold text-xl mb-3 pb-1 border-b border-[#E8E3D8] text-[#1F1D1A] placeholder:text-[#969087] transition-colors"
+        className="w-full bg-transparent outline-none font-serif italic font-medium text-xl sm:text-2xl mb-3 pb-1 border-b border-[var(--line,#D8D0BC)] text-[var(--ink,#1B2420)] placeholder:text-[var(--sage-dim,#9DAC95)] transition-colors"
       />
 
       {/* Formatting Toolbar: Bold, Italic, Underline, Bullet list, Numbered list, Heading, Cursive */}
       {editor && (
-        <div className="flex items-center gap-1 pb-2.5 mb-3 border-b border-[#E8E3D8] flex-shrink-0 flex-wrap">
+        <div className="flex items-center gap-1 pb-2.5 mb-3 border-b border-[var(--line,#D8D0BC)] flex-shrink-0 flex-wrap">
           <FormatBtn
             onClick={() => editor.chain().focus().toggleBold().run()}
             active={editor.isActive('bold')}
@@ -257,7 +257,7 @@ const JournalPanel = ({ onClose }) => {
             <UnderlineIcon className="w-3.5 h-3.5" />
           </FormatBtn>
 
-          <div className="w-px h-3.5 mx-1 bg-[#E8E3D8]" />
+          <div className="w-px h-3.5 mx-1 bg-[var(--line,#D8D0BC)]" />
 
           <FormatBtn
             onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -282,16 +282,16 @@ const JournalPanel = ({ onClose }) => {
             <Heading2 className="w-3.5 h-3.5" />
           </FormatBtn>
 
-          <div className="w-px h-3.5 mx-1 bg-[#E8E3D8]" />
+          <div className="w-px h-3.5 mx-1 bg-[var(--line,#D8D0BC)]" />
 
           {/* Cursive Handwriting Toggle */}
           <button
             type="button"
             onClick={() => setIsCursive(!isCursive)}
-            className={`px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer font-medium ${
+            className={`px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer font-sans font-medium ${
               isCursive
-                ? 'bg-[#C2531C] text-white shadow-2xs font-bold'
-                : 'text-[#6B665F] hover:text-[#1F1D1A] hover:bg-black/[0.05]'
+                ? 'bg-[var(--gold,#C9A135)] text-[var(--bone,#EFE9DC)] shadow-2xs font-semibold'
+                : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)] hover:bg-black/[0.05]'
             }`}
             title="Toggle Handwritten Cursive Font"
           >
@@ -303,12 +303,12 @@ const JournalPanel = ({ onClose }) => {
 
       {/* Writing Area with Ruled Ledger Margin */}
       <div
-        className="flex-1 overflow-y-auto pr-3 pt-1 border-l-2 border-[#E5C2AE] pl-5 ml-1 transition-all"
+        className="flex-1 overflow-y-auto pr-3 pt-1 border-l-2 border-[var(--gold,#C9A135)] pl-5 ml-1 transition-all"
         style={{
           fontFamily: isCursive ? "'Caveat', cursive" : "var(--font-serif)",
           fontSize: isCursive ? '20px' : '15px',
           lineHeight: isCursive ? '1.9' : '1.7',
-          color: '#1F1D1A',
+          color: 'var(--ink, #1B2420)',
         }}
       >
         {editor && <EditorContent editor={editor} />}
@@ -318,7 +318,7 @@ const JournalPanel = ({ onClose }) => {
 
   return (
     <>
-      <div className="w-full flex flex-col h-full bg-[#FDFCF9] border-l border-[#E8E3D8] shadow-xs">
+      <div className="w-full flex flex-col h-full bg-[var(--bone,#EFE9DC)] border-l border-[var(--line,#D8D0BC)] shadow-xs">
         {renderContent(false)}
       </div>
 
@@ -329,7 +329,7 @@ const JournalPanel = ({ onClose }) => {
           onClick={() => setIsZoomed(false)}
         >
           <div
-            className="w-full max-w-3xl h-[85vh] rounded-2xl overflow-hidden shadow-2xl border border-[#E8E3D8] bg-[#FDFCF9] animate-scale-in"
+            className="w-full max-w-3xl h-[85vh] rounded-2xl overflow-hidden shadow-2xl border border-[var(--line,#D8D0BC)] bg-[var(--bone,#EFE9DC)] animate-scale-in"
             onClick={(e) => e.stopPropagation()}
           >
             {renderContent(true)}

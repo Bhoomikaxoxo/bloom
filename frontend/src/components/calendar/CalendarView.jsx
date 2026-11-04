@@ -253,7 +253,7 @@ const CalendarView = () => {
               <CalendarDays className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[var(--color-text)] tracking-tight">
+              <h2 className="font-serif italic font-medium text-2xl text-[var(--color-text)] tracking-tight">
                 {monthName} {year}
               </h2>
               <p className="text-xs text-[var(--color-text-muted)] font-medium">
@@ -406,7 +406,7 @@ const CalendarView = () => {
                 · {selectedDateKey}
               </span>
             </div>
-            <h3 className="text-base font-bold text-[var(--color-text)] tracking-tight">
+            <h3 className="font-serif italic font-medium text-xl text-[var(--color-text)] tracking-tight">
               {selectedDateDisplay}
             </h3>
           </div>

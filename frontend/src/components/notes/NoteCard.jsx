@@ -326,7 +326,7 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
       </div>
 
       {/* Note Title */}
-      <h3 className="font-semibold text-base text-[var(--color-text)] leading-snug mb-2.5">
+      <h3 className="font-serif text-[17.5px] font-medium text-[var(--color-text)] leading-snug mb-2.5">
         {note.title || 'Untitled Note'}
       </h3>
 

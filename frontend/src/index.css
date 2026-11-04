@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Space+Grotesk:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&family=Plus+Jakarta+Sans:ital,wght@0,400..800;1,400..800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,28 +6,41 @@
 
 @layer base {
   :root {
-    /* Base Organic Palette (Unbleached cotton paper + Terracotta Accent) */
-    --paper-color: #F8F6F1;
-    --paper-card: #FDFCF9;
-    --paper-border: #E8E3D8;
+    /* Bloom v2 Signature Botanical Linen Palette */
+    --ink: #1B2420;
+    --ink-soft: #3A463E;
+    --bone: #EFE9DC;
+    --bone-dim: #E4DDCC;
+    --sage: #6B7F63;
+    --sage-dim: #9DAC95;
+    --brick: #A8491F;
+    --gold: #C9A135;
+    --line: #D8D0BC;
+    --card: #F7F4EC;
+    --rail: #1B2420;
+
+    /* Base Organic Palette */
+    --paper-color: #EFE9DC;
+    --paper-card: #F7F4EC;
+    --paper-border: #D8D0BC;
     --paper-grain-color: rgba(60, 45, 30, 0.035);
 
     /* Terracotta Accent Scale */
-    --color-accent: #C2531C;
-    --color-accent-hover: #A63E0F;
-    --color-accent-bg: #FDF8F5;
-    --color-accent-border: #F2DDD1;
-    --color-accent-ring: rgba(194, 83, 28, 0.2);
+    --color-accent: #A8491F;
+    --color-accent-hover: #87330E;
+    --color-accent-bg: #F7F4EC;
+    --color-accent-border: #D8D0BC;
+    --color-accent-ring: rgba(168, 73, 31, 0.2);
 
     /* Ink Typography */
-    --color-text: #1F1D1A;
-    --color-text-muted: #6B665F;
-    --color-text-subtle: #969087;
+    --color-text: #1B2420;
+    --color-text-muted: #3A463E;
+    --color-text-subtle: #7A746C;
 
     /* Semantic Energy Levels */
     --energy-focus: #244A38;
     --energy-focus-bg: #F0F5F2;
-    --energy-urgent: #A63E0F;
+    --energy-urgent: #A8491F;
     --energy-urgent-bg: #FDF4EF;
     --energy-routine: #7D5E29;
     --energy-routine-bg: #FAF5EB;
@@ -35,14 +48,14 @@
     --energy-calm-bg: #F5F1F8;
 
     /* Typographic Hierarchy */
-    --font-serif: 'Newsreader', Georgia, serif;
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-serif: 'Fraunces', 'Newsreader', Georgia, serif;
+    --font-sans: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
 
   body {
-    background-color: var(--paper-color);
-    color: var(--color-text);
+    background-color: var(--bone);
+    color: var(--ink);
     font-family: var(--font-sans);
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
@@ -52,19 +65,61 @@
 
   h1, h2, h3, h4 {
     font-family: var(--font-serif);
-    color: var(--color-text);
+    color: var(--ink);
     letter-spacing: -0.015em;
   }
 }
 
 @layer components {
-  /* Subtle organic paper grain texture replacing generic dot grid */
+  /* Bloom v2 Continuous Spine Wire */
+  .v2-spine {
+    position: relative;
+    padding-left: 28px;
+  }
+  .v2-spine::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: var(--line, #D8D0BC);
+  }
+  .v2-node {
+    position: relative;
+    padding-bottom: 26px;
+  }
+  .v2-node::before {
+    content: "";
+    position: absolute;
+    left: -28px;
+    top: 5px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--bone, #EFE9DC);
+    border: 2px solid var(--sage, #6B7F63);
+    transition: all 0.15s ease-in-out;
+  }
+  .v2-node.done::before {
+    background: var(--sage, #6B7F63);
+    border-color: var(--sage, #6B7F63);
+  }
+
+  /* Bloom v2 Hero Insight Claim */
+  .v2-hero {
+    border-left: 3px solid var(--gold, #C9A135);
+    padding-left: 18px;
+    margin-bottom: 32px;
+  }
+
+  /* Subtle organic paper grain texture */
   .bg-paper-grain {
-    background-color: #F8F6F1;
+    background-color: var(--bone, #EFE9DC);
     background-image: 
-      radial-gradient(#000000 0.4px, transparent 0.4px),
-      linear-gradient(to right, rgba(0,0,0,0.015) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0,0,0,0.015) 1px, transparent 1px);
+      radial-gradient(#1B2420 0.4px, transparent 0.4px),
+      linear-gradient(to right, rgba(27,36,32,0.015) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(27,36,32,0.015) 1px, transparent 1px);
     background-size: 32px 32px, 80px 80px, 80px 80px;
     background-position: 0 0, 0 0, 0 0;
   }

@@ -102,11 +102,12 @@ const useSlateStore = create(
       confettiTrigger: null,
       journalViewMode: 'notes',
       journals: {},
-      activeAestheticTheme: 'caramel',
+      activeAestheticTheme: 'bloom-v2',
+      sidebarCollapsed: false,
       folderThemes: {
         'folder-work': 'matcha',
         'folder-personal': 'rose',
-        'folder-ideas': 'lavender',
+        'folder-ideas': 'caramel',
       },
       sortMode: 'newest', // 'newest' | 'oldest' | 'az' | 'color'
       openNoteId: null, // ID of note open in full editor
@@ -239,6 +240,8 @@ const useSlateStore = create(
 
       workspaceView: 'spine', // 'spine' (Daily Stream) | 'canvas' (Macro Desk) | 'calendar' (Month Grid)
       setWorkspaceView: (view) => set({ workspaceView: view, showCalendar: view === 'calendar' }),
+      toggleSidebarCollapsed: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+      setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
 
       setTaskStatus: (id, status) => set((state) => {
         let isDone = status === 'completed';
@@ -681,10 +684,10 @@ const useSlateStore = create(
               return true;
             });
           }
-          if (state.activeAestheticTheme === 'toffee' || state.activeAestheticTheme === 'sunsetMeadow') {
-            state.activeAestheticTheme = 'caramel';
+          if (!state.activeAestheticTheme || state.activeAestheticTheme === 'toffee' || state.activeAestheticTheme === 'sunsetMeadow') {
+            state.activeAestheticTheme = 'bloom-v2';
           } else if (state.activeAestheticTheme === 'sage') {
-            state.activeAestheticTheme = 'rose';
+            state.activeAestheticTheme = 'matcha';
           } else if (state.activeAestheticTheme === 'matchaFrog') {
             state.activeAestheticTheme = 'matcha';
           } else if (state.activeAestheticTheme === 'lilacMist') {

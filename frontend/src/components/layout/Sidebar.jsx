@@ -22,6 +22,7 @@ const Sidebar = ({ onCloseMobile }) => {
     workspaceView,
     setWorkspaceView,
     setAestheticTheme,
+    toggleSidebarCollapsed,
     calendarEvents = [],
     folderThemes,
     setActiveFolderId,
@@ -132,10 +133,18 @@ const Sidebar = ({ onCloseMobile }) => {
   };
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-[#F8F6F1] dark:bg-[#1E1B18] border-r border-[#E8E3D8] dark:border-[#38332E] p-4 flex flex-col h-screen overflow-y-auto select-none transition-colors">
-      {/* 1. Bespoke Brand Logo Header */}
-      <div className="px-1 pt-1 pb-4 mb-3 border-b border-[#E8E3D8] dark:border-[#38332E]">
+    <aside className="w-64 flex-shrink-0 bg-[var(--bone-dim,#E4DDCC)] border-r border-[var(--line,#D8D0BC)] p-4 flex flex-col h-screen overflow-y-auto select-none transition-colors font-sans">
+      {/* 1. Bespoke Brand Logo Header with Collapse Button */}
+      <div className="px-1 pt-1 pb-4 mb-3 border-b border-[var(--line,#D8D0BC)] flex items-center justify-between">
         <BloomLogo onClick={() => selectView('spine')} />
+        <button
+          type="button"
+          onClick={toggleSidebarCollapsed}
+          className="p-1.5 rounded-lg text-[var(--sage-dim,#9DAC95)] hover:text-[var(--ink,#1B2420)] hover:bg-black/[0.04] transition-colors cursor-pointer"
+          title="Collapse drawer (Pure Rail view)"
+        >
+          <ChevronRight className="w-4 h-4 rotate-180" />
+        </button>
       </div>
 
       {/* 2. Core Cognitive Lenses (Attention Spine / Canvas / Calendar) */}

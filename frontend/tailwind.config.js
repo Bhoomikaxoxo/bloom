@@ -8,12 +8,24 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-                serif: ['Newsreader', 'Georgia', 'serif'],
-                display: ['Newsreader', 'Georgia', 'serif'],
+                sans: ['"Space Grotesk"', '"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                serif: ['Fraunces', 'Newsreader', 'Georgia', 'serif'],
+                display: ['Fraunces', 'Newsreader', 'Georgia', 'serif'],
                 mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+                cursive: ['Caveat', 'cursive'],
             },
             colors: {
+                bone: '#EFE9DC',
+                'bone-dim': '#E4DDCC',
+                ink: '#1B2420',
+                'ink-soft': '#3A463E',
+                sage: '#6B7F63',
+                'sage-dim': '#9DAC95',
+                brick: '#A8491F',
+                gold: '#C9A135',
+                line: '#D8D0BC',
+                card: '#F7F4EC',
+                rail: '#1B2420',
                 bloom: {
                     50: '#FDF8F5',
                     100: '#F9EFE9',

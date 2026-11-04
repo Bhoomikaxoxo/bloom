@@ -29,6 +29,43 @@ export const TAG_COLOR_MAP = {
 
 export const THEMES = [
   {
+    id: 'bloom-v2',
+    name: 'Botanical Linen',
+    accentColor: '#A8491F',
+    accentColorDark: '#87330E',
+    accentBg: 'rgba(168, 73, 31, 0.12)',
+    accentBorder: 'rgba(168, 73, 31, 0.32)',
+    paperColor: '#EFE9DC',
+    sidebarBg: '#E4DDCC',
+    cardBg: '#F7F4EC',
+    cardBorder: '#D8D0BC',
+    gridColor: 'rgba(107, 127, 99, 0.15)',
+    inkColor: '#1B2420',
+    mutedColor: '#3A463E',
+    isDark: false,
+    gradient: {
+      from: '#EFE9DC',
+      via: '#EFE9DC',
+      to: '#E4DDCC',
+    },
+    noteColors: [
+      '#F7F4EC',
+      '#FAF8F2',
+      '#F3EEE2',
+      '#FBF9F4',
+      '#F5EFE3',
+      '#EDE7D9',
+    ],
+    noteBorderColors: [
+      '#A8491F',
+      '#6B7F63',
+      '#C9A135',
+      '#3A463E',
+      '#9DAC95',
+      '#D4673A',
+    ],
+  },
+  {
     id: 'caramel',
     name: 'Honey Caramel',
     accentColor: '#B65E19',
@@ -255,6 +292,19 @@ export const applyTheme = (theme) => {
   root.style.setProperty('--color-card-bg', theme.cardBg);
   root.style.setProperty('--color-card-border', theme.cardBorder);
   root.style.setProperty('--color-grid-dot', theme.gridColor);
+
+  // Bloom v2 Botanical Linen Tokens
+  root.style.setProperty('--bone', theme.paperColor || '#EFE9DC');
+  root.style.setProperty('--bone-dim', theme.sidebarBg || '#E4DDCC');
+  root.style.setProperty('--ink', theme.inkColor || '#1B2420');
+  root.style.setProperty('--ink-soft', theme.mutedColor || '#3A463E');
+  root.style.setProperty('--card', theme.cardBg || '#F7F4EC');
+  root.style.setProperty('--line', theme.cardBorder || '#D8D0BC');
+  root.style.setProperty('--sage', '#6B7F63');
+  root.style.setProperty('--sage-dim', '#9DAC95');
+  root.style.setProperty('--brick', '#A8491F');
+  root.style.setProperty('--gold', '#C9A135');
+  root.style.setProperty('--rail', '#1B2420');
 
   if (theme.gradient) {
     root.style.setProperty('--color-bg-from', theme.gradient.from);
