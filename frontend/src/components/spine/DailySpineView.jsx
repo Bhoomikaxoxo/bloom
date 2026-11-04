@@ -47,18 +47,43 @@ const DailySpineView = () => {
   }, [tomorrowObj]);
 
   // Items for today (excluding deleted notes)
+  // Events for today from unified calendar model
+  const todayEvents = useMemo(() => {
+    return (calendarEvents || [])
+      .filter((e) => e.date === todayStr)
+      .map((e) => ({
+        id: e.id,
+        title: e.title,
+        timeBlock: e.time,
+        type: 'event',
+        category: e.category,
+        status: e.completed ? 'completed' : 'todo',
+        createdAt: 0,
+        isEvent: true,
+      }));
+  }, [calendarEvents, todayStr]);
+
+  // Items for today (scheduled for today, created today, or active tasks needing attention)
   const todayItems = useMemo(() => {
-    return notes.filter((n) => {
+    const matchedNotes = notes.filter((n) => {
       if (n.deletedAt !== null) return false;
+      if (n.scheduledDate === todayStr) return true;
       const createdDate = new Date(n.createdAt).toISOString().split('T')[0];
-      return n.scheduledDate === todayStr || createdDate === todayStr;
+      if (createdDate === todayStr) return true;
+      // Also surface uncompleted tasks/checklists so the user is never stranded with an empty desk
+      if (n.status !== 'completed' && (!n.scheduledDate || n.scheduledDate <= todayStr || n.isAnchor || n.status === 'in_progress')) {
+        return true;
+      }
+      return false;
     });
-  }, [notes, todayStr]);
+
+    return [...todayEvents, ...matchedNotes];
+  }, [notes, todayEvents, todayStr]);
 
   // Tomorrow count for footer
   const tomorrowCount = useMemo(() => {
     const tasksTomorrow = notes.filter((n) => n.deletedAt === null && n.scheduledDate === tomorrowStr).length;
-    const eventsTomorrow = calendarEvents.filter((e) => e.date === tomorrowStr).length;
+    const eventsTomorrow = (calendarEvents || []).filter((e) => e.date === tomorrowStr).length;
     return tasksTomorrow + eventsTomorrow;
   }, [notes, calendarEvents, tomorrowStr]);
 
@@ -83,7 +108,6 @@ const DailySpineView = () => {
   // All scheduled tasks & notes on spine
   const spineItems = useMemo(() => {
     return todayItems.filter((n) => {
-      // Don't duplicate anchor if already hero
       return true;
     }).sort((a, b) => {
       if (a.status === 'completed' && b.status !== 'completed') return 1;
@@ -91,7 +115,7 @@ const DailySpineView = () => {
       if (a.timeBlock && b.timeBlock) return a.timeBlock.localeCompare(b.timeBlock);
       if (a.timeBlock) return -1;
       if (b.timeBlock) return 1;
-      return a.createdAt - b.createdAt;
+      return (a.createdAt || 0) - (b.createdAt || 0);
     });
   }, [todayItems]);
 
@@ -102,6 +126,17 @@ const DailySpineView = () => {
 
   const handleToggleTask = (task, e) => {
     e.stopPropagation();
+    if (task.isEvent) {
+      // Toggle calendar event completion
+      const updatedEvents = (calendarEvents || []).map((ev) =>
+        ev.id === task.id ? { ...ev, completed: !ev.completed } : ev
+      );
+      useSlateStore.setState({ calendarEvents: updatedEvents });
+      if (!task.status || task.status !== 'completed') {
+        triggerConfetti(e.clientX, e.clientY);
+      }
+      return;
+    }
     const nextStatus = task.status === 'completed' ? 'todo' : 'completed';
     setTaskStatus(task.id, nextStatus);
     if (nextStatus === 'completed') {
@@ -185,6 +220,22 @@ const DailySpineView = () => {
         primaryText: 'Do it now',
         secondaryAction: () => scheduleItem(slippingItem.id, tomorrowStr),
         secondaryText: 'Push to tomorrow',
+      };
+    }
+    // If no explicit anchor/slipping but there are uncompleted tasks, surface the top priority task
+    const topActiveTask = todayItems.find((n) => (n.type === 'task' || n.type === 'checklist') && n.status !== 'completed');
+    if (topActiveTask) {
+      return {
+        eyebrow: 'focus — surfaced priority',
+        claim: topActiveTask.title,
+        sub: topActiveTask.timeBlock ? `Scheduled for ${topActiveTask.timeBlock}. Everything else supports this.` : 'No time locked yet. Tap to set as today’s anchor or finish now.',
+        primaryAction: (e) => handleToggleTask(topActiveTask, e),
+        primaryText: 'Finish now',
+        secondaryAction: () => {
+          const t = prompt('Attach a focus time block (e.g. 14:00):');
+          if (t) scheduleItem(topActiveTask.id, todayStr, t);
+        },
+        secondaryText: 'Give it a time',
       };
     }
     if (spineItems.length > 0 && spineItems.every((i) => i.status === 'completed')) {
@@ -381,8 +432,8 @@ const DailySpineView = () => {
 
                   {/* Item Content Row */}
                   <div className="text-[15px] font-sans flex items-baseline gap-2.5 flex-wrap">
-                    {/* Checkbox for tasks */}
-                    {isTask ? (
+                    {/* Checkbox for tasks and calendar events */}
+                    {isTask || item.type === 'event' ? (
                       <button
                         type="button"
                         onClick={(e) => handleToggleTask(item, e)}
@@ -403,6 +454,13 @@ const DailySpineView = () => {
                       >
                         {item.title || 'Untitled Manuscript'}
                       </button>
+                    )}
+
+                    {/* Event Tag */}
+                    {item.type === 'event' && (
+                      <span className="text-[11px] font-sans text-[var(--ink-soft,#3A463E)] border border-[var(--line,#D8D0BC)] rounded px-1.5 py-0.2">
+                        event
+                      </span>
                     )}
 
                     {/* Tag / Category Badge */}
