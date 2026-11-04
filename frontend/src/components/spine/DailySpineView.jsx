@@ -3,8 +3,97 @@ import useSlateStore from '../../store/useSlateStore';
 import {
   Clock, Check, Sparkles, AlertCircle, ArrowRight,
   CalendarDays, Plus, FileText, CheckSquare, Trash2,
-  ChevronRight, BookmarkCheck, Feather, Columns
+  ChevronRight, BookmarkCheck, Feather, Columns, X, Zap
 } from 'lucide-react';
+
+// High-Efficiency Natural Language Parser for Quick Capture
+const parseQuickInput = (rawText, folders = []) => {
+  let text = rawText.trim();
+  let timeBlock = null;
+  let scheduledDate = null;
+  let folderId = null;
+  let isAnchor = false;
+  let energyDomain = 'focus';
+  const tags = [];
+
+  // 1. Anchor trigger (*anchor or !anchor)
+  if (/\*anchor|\!anchor/i.test(text)) {
+    isAnchor = true;
+    text = text.replace(/\*anchor|\!anchor/gi, '').trim();
+  }
+
+  // 2. Tags (#tag)
+  const tagMatches = text.match(/#([\w-]+)/g);
+  if (tagMatches) {
+    tagMatches.forEach((t) => {
+      tags.push(t.replace('#', '').toLowerCase());
+    });
+    text = text.replace(/#([\w-]+)/g, '').trim();
+  }
+
+  // 3. Folder routing (/work, /personal, /ideas or !work, !personal)
+  folders.forEach((f) => {
+    const pattern = new RegExp(`[/!]${f.name}\\b`, 'i');
+    if (pattern.test(text)) {
+      folderId = f.id;
+      text = text.replace(pattern, '').trim();
+    }
+  });
+
+  // 4. Date extraction
+  if (/\btomorrow\b/i.test(text)) {
+    scheduledDate = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    text = text.replace(/\btomorrow\b/gi, '').trim();
+  } else if (/\btoday\b/i.test(text)) {
+    scheduledDate = new Date().toISOString().split('T')[0];
+    text = text.replace(/\btoday\b/gi, '').trim();
+  }
+
+  // 5. Time extraction (e.g. "9am", "9:30am", "2pm", "14:00", "tonight")
+  if (/\btonight\b/i.test(text)) {
+    timeBlock = 'tonight';
+    text = text.replace(/\btonight\b/gi, '').trim();
+  } else {
+    const timeMatch = text.match(/(?:at\s+)?(\b\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b)/i);
+    if (timeMatch && timeMatch[1]) {
+      timeBlock = timeMatch[1].trim();
+      text = text.replace(timeMatch[0], '').trim();
+    }
+  }
+
+  // 6. Energy domain (!urgent, !calm, !routine)
+  if (/\!urgent\b/i.test(text)) {
+    energyDomain = 'urgent';
+    text = text.replace(/\!urgent\b/gi, '').trim();
+  } else if (/\!calm\b/i.test(text)) {
+    energyDomain = 'calm';
+    text = text.replace(/\!calm\b/gi, '').trim();
+  } else if (/\!routine\b/i.test(text)) {
+    energyDomain = 'routine';
+    text = text.replace(/\!routine\b/gi, '').trim();
+  }
+
+  text = text.replace(/\s+/g, ' ').trim();
+
+  return {
+    title: text || rawText.trim(),
+    timeBlock,
+    scheduledDate,
+    folderId,
+    isAnchor,
+    energyDomain,
+    tags,
+  };
+};
+
+const QUICK_TIME_SLOTS = [
+  { label: '9:00 AM', value: '09:00' },
+  { label: '11:30 AM', value: '11:30' },
+  { label: '2:00 PM', value: '14:00' },
+  { label: '4:30 PM', value: '16:30' },
+  { label: '7:00 PM', value: '19:00' },
+  { label: 'Tonight', value: 'tonight' },
+];
 
 const DailySpineView = () => {
   const {
@@ -27,6 +116,8 @@ const DailySpineView = () => {
   const [quickInput, setQuickInput] = useState('');
   const [reflectionInput, setReflectionInput] = useState('');
   const [reflectionSaved, setReflectionSaved] = useState(false);
+  const [timePickerTargetId, setTimePickerTargetId] = useState(null);
+  const [customTimeInput, setCustomTimeInput] = useState('');
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const tomorrowStr = useMemo(() => new Date(Date.now() + 86400000).toISOString().split('T')[0], []);
@@ -144,24 +235,27 @@ const DailySpineView = () => {
     }
   };
 
+  const handleApplyTimeBlock = (timeVal) => {
+    if (!timePickerTargetId || !timeVal) return;
+    scheduleItem(timePickerTargetId, todayStr, timeVal);
+    setTimePickerTargetId(null);
+    setCustomTimeInput('');
+  };
+
   const handleQuickCapture = (e) => {
     e.preventDefault();
     if (!quickInput.trim()) return;
 
-    // Detect time if typed (e.g. "9am" or "14:00")
-    let title = quickInput.trim();
-    let timeBlock = null;
-    const timeMatch = title.match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)$/i);
-    if (timeMatch) {
-      timeBlock = timeMatch[1];
-      title = title.replace(timeMatch[0], '').trim();
-    }
+    const parsed = parseQuickInput(quickInput, folders);
 
-    quickCapture(title || quickInput.trim(), {
-      scheduledDate: todayStr,
-      timeBlock,
+    quickCapture(parsed.title, {
+      scheduledDate: parsed.scheduledDate || todayStr,
+      timeBlock: parsed.timeBlock,
+      folderId: parsed.folderId || null,
+      isAnchor: parsed.isAnchor,
+      energyDomain: parsed.energyDomain,
+      tags: parsed.tags,
       type: 'task',
-      energyDomain: 'focus',
     });
 
     setQuickInput('');
@@ -193,10 +287,7 @@ const DailySpineView = () => {
         sub: todayAnchor.timeBlock ? `Locked for ${todayAnchor.timeBlock}. Everything else supports this.` : 'No time locked yet. Guard your attention for this item.',
         primaryAction: (e) => handleToggleTask(todayAnchor, e),
         primaryText: 'Finish now',
-        secondaryAction: () => {
-          const t = prompt('Attach a focus time block (e.g. 14:00):');
-          if (t) scheduleItem(todayAnchor.id, todayStr, t);
-        },
+        secondaryAction: () => setTimePickerTargetId(todayAnchor.id),
         secondaryText: 'Give it a time',
       };
     }
@@ -231,10 +322,7 @@ const DailySpineView = () => {
         sub: topActiveTask.timeBlock ? `Scheduled for ${topActiveTask.timeBlock}. Everything else supports this.` : 'No time locked yet. Tap to set as today’s anchor or finish now.',
         primaryAction: (e) => handleToggleTask(topActiveTask, e),
         primaryText: 'Finish now',
-        secondaryAction: () => {
-          const t = prompt('Attach a focus time block (e.g. 14:00):');
-          if (t) scheduleItem(topActiveTask.id, todayStr, t);
-        },
+        secondaryAction: () => setTimePickerTargetId(topActiveTask.id),
         secondaryText: 'Give it a time',
       };
     }
@@ -367,13 +455,13 @@ const DailySpineView = () => {
           </div>
         )}
 
-        {/* 5. Clean Capture Input (Bloom v2) */}
+        {/* 5. Clean Capture Input with Natural Language Support (Bloom v2) */}
         <form onSubmit={handleQuickCapture} className="flex gap-2.5 mb-9">
           <input
             type="text"
             value={quickInput}
             onChange={(e) => setQuickInput(e.target.value)}
-            placeholder="Water the plants, 9am…"
+            placeholder="Water the plants 9am, or type Dentist tomorrow 2pm /personal #urgent…"
             className="flex-1 bg-[var(--card,#F7F4EC)] border border-[var(--line,#D8D0BC)] rounded-xl px-4 py-3 text-[14.5px] font-sans text-[var(--ink,#1B2420)] placeholder:text-[var(--sage-dim,#9DAC95)] outline-none focus:border-[var(--gold,#C9A135)] shadow-2xs transition-all"
           />
           <button
@@ -405,7 +493,19 @@ const DailySpineView = () => {
                 <div key={item.id} className={`v2-node ${isDone ? 'done' : ''} group`}>
                   {/* Timestamp / Trigger */}
                   <div className="text-[11.5px] font-sans text-[var(--sage,#6B7F63)] mb-1 font-mono flex items-center justify-between">
-                    <span>{item.timeBlock || (item.isAnchor ? 'anchor' : 'no time set')}</span>
+                    <button
+                      type="button"
+                      onClick={() => setTimePickerTargetId(item.id)}
+                      className="hover:underline cursor-pointer flex items-center gap-1.5"
+                      title="Click to schedule or change focus time"
+                    >
+                      <span>{item.timeBlock || (item.isAnchor ? 'anchor' : 'no time set')}</span>
+                      {!item.timeBlock && (
+                        <span className="text-[10px] text-[var(--brick,#A8491F)] font-sans underline underline-offset-2 opacity-80 group-hover:opacity-100">
+                          + time
+                        </span>
+                      )}
+                    </button>
                     
                     {/* Hover actions */}
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
@@ -418,6 +518,13 @@ const DailySpineView = () => {
                           Make Anchor
                         </button>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => setTimePickerTargetId(item.id)}
+                        className="text-[11px] text-[var(--brick,#A8491F)] hover:underline cursor-pointer"
+                      >
+                        {item.timeBlock ? 'Change Time' : 'Time'}
+                      </button>
                       {!isDone && (
                         <button
                           type="button"
@@ -531,6 +638,74 @@ const DailySpineView = () => {
             Open Calendar →
           </button>
         </div>
+
+        {/* Implementation Intentions: Micro Time Picker Popover */}
+        {timePickerTargetId && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-2xs animate-fade-in"
+            onClick={() => setTimePickerTargetId(null)}
+          >
+            <div
+              className="bg-[var(--card,#F7F4EC)] border border-[var(--line,#D8D0BC)] rounded-2xl p-5 shadow-2xl max-w-sm w-full space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10.5px] font-mono uppercase tracking-wider text-[var(--gold,#C9A135)] font-bold">
+                    Implementation Intentions
+                  </span>
+                  <h4 className="font-serif text-base font-semibold text-[var(--ink,#1B2420)] m-0">
+                    Lock a Time Block
+                  </h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTimePickerTargetId(null)}
+                  className="p-1 rounded-lg hover:bg-black/5 text-[var(--ink-soft,#3A463E)] cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                {QUICK_TIME_SLOTS.map((slot) => (
+                  <button
+                    key={slot.value}
+                    type="button"
+                    onClick={() => handleApplyTimeBlock(slot.value)}
+                    className="py-2 px-2 rounded-xl text-xs font-sans font-medium bg-[var(--bone,#EFE9DC)] border border-[var(--line,#D8D0BC)] hover:border-[var(--brick,#A8491F)] hover:text-[var(--brick,#A8491F)] text-[var(--ink,#1B2420)] transition-all cursor-pointer shadow-2xs active:scale-95 text-center"
+                  >
+                    {slot.label}
+                  </button>
+                ))}
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (customTimeInput.trim()) handleApplyTimeBlock(customTimeInput.trim());
+                }}
+                className="flex gap-2 pt-2 border-t border-[var(--line,#D8D0BC)]"
+              >
+                <input
+                  type="text"
+                  value={customTimeInput}
+                  onChange={(e) => setCustomTimeInput(e.target.value)}
+                  placeholder="Custom time (e.g. 10:15am)…"
+                  autoFocus
+                  className="flex-1 bg-[var(--bone,#EFE9DC)] border border-[var(--line,#D8D0BC)] rounded-xl px-3 py-1.5 text-xs font-sans text-[var(--ink,#1B2420)] placeholder:text-[var(--sage-dim,#9DAC95)] outline-none focus:border-[var(--brick,#A8491F)]"
+                />
+                <button
+                  type="submit"
+                  disabled={!customTimeInput.trim()}
+                  className="px-3.5 py-1.5 bg-[var(--ink,#1B2420)] text-[var(--bone,#EFE9DC)] text-xs font-medium rounded-xl hover:opacity-90 disabled:opacity-40 cursor-pointer"
+                >
+                  Set
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

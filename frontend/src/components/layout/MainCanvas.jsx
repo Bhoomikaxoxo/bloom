@@ -1,13 +1,14 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, Suspense, lazy } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import useSlateStore from '../../store/useSlateStore';
 import NoteCard from '../notes/NoteCard';
-import NoteEditor from '../notes/NoteEditor';
-import CalendarView from '../calendar/CalendarView';
-import JournalPanel from './JournalPanel';
 import DailySpineView from '../spine/DailySpineView';
-import FolderSplitView from '../folder/FolderSplitView';
 import ThemeSwitcher from './ThemeSwitcher';
+
+const NoteEditor = lazy(() => import('../notes/NoteEditor'));
+const CalendarView = lazy(() => import('../calendar/CalendarView'));
+const JournalPanel = lazy(() => import('./JournalPanel'));
+const FolderSplitView = lazy(() => import('../folder/FolderSplitView'));
 import {
   Search, Plus, Sparkles, FileText, ArrowDownUp, Clock,
   ArrowUpAZ, Palette, LayoutGrid, Layers, CheckSquare,
@@ -452,17 +453,23 @@ const MainCanvas = () => {
 
         {/* LENS 2: Month Calendar & Day Planner */}
         {workspaceView === 'calendar' && !isFilteredOrSpecial && (
-          <CalendarView />
+          <Suspense fallback={<div className="flex-1 flex items-center justify-center text-xs font-mono text-[var(--sage,#6B7F63)] animate-pulse">Loading Calendar…</div>}>
+            <CalendarView />
+          </Suspense>
         )}
 
         {/* LENS 3: Manuscript Notes */}
         {(workspaceView === 'notes' || workspaceView === 'journal') && !isFilteredOrSpecial && (
-          <JournalPanel />
+          <Suspense fallback={<div className="flex-1 flex items-center justify-center text-xs font-mono text-[var(--sage,#6B7F63)] animate-pulse">Loading Notes…</div>}>
+            <JournalPanel />
+          </Suspense>
         )}
 
         {/* LENS 4: Split View (Notes & Tasks side-by-side) */}
         {((workspaceView === 'split') || (activeFolder && folderViewMode === 'split')) && !showTrash && !showFavorites && (
-          <FolderSplitView folder={activeFolder || folders[0] || { id: 'folder-work', name: 'Work', icon: '💼', theme: 'matcha' }} />
+          <Suspense fallback={<div className="flex-1 flex items-center justify-center text-xs font-mono text-[var(--sage,#6B7F63)] animate-pulse">Loading Split View…</div>}>
+            <FolderSplitView folder={activeFolder || folders[0] || { id: 'folder-work', name: 'Work', icon: '💼', theme: 'matcha' }} />
+          </Suspense>
         )}
 
         {/* LENS 5: Desk Canvas (All Collections, Folder filtering, Tactile cards) */}
@@ -761,7 +768,9 @@ const MainCanvas = () => {
       {/* Full Note Editor Modal */}
       <AnimatePresence>
         {openNote && (
-          <NoteEditor key={openNote.id} note={openNote} onClose={() => setOpenNoteId(null)} />
+          <Suspense fallback={null}>
+            <NoteEditor key={openNote.id} note={openNote} onClose={() => setOpenNoteId(null)} />
+          </Suspense>
         )}
       </AnimatePresence>
     </main>

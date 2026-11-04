@@ -3,11 +3,16 @@ import { X, Command, Search, FileText, CheckSquare, Keyboard } from 'lucide-reac
 
 const shortcuts = [
     {
-        category: 'Navigation',
+        category: 'Quick Navigation',
         items: [
+            { keys: ['1'], description: 'Today / Daily Flow' },
+            { keys: ['2'], description: 'Split View (Notes & Tasks)' },
+            { keys: ['3'], description: 'Desk Canvas (All Notes)' },
+            { keys: ['4'], description: 'Calendar & Planner' },
+            { keys: ['5'], description: 'Manuscript Notes' },
+            { keys: ['C'], description: 'Focus Quick Capture' },
             { keys: ['⌘', 'K'], description: 'Quick search' },
-            { keys: ['⌘', 'N'], description: 'New note' },
-            { keys: ['P'], description: 'Calendar & Planner' },
+            { keys: ['?'], description: 'Show shortcuts' },
             { keys: ['Esc'], description: 'Close dialogs' },
         ]
     },

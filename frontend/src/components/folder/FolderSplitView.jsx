@@ -193,10 +193,16 @@ const FolderSplitView = ({ folder }) => {
     const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to, ' ').trim();
 
-    const cardTitle = selectedText || prompt('Enter title for the new context card:');
-    if (!cardTitle || !cardTitle.trim()) return;
+    if (!selectedText) {
+      // If nothing selected, direct user focus to the quick card capture on the right
+      const quickCardInput = document.querySelector('input[placeholder*="Add a task or context card"]');
+      if (quickCardInput) {
+        quickCardInput.focus();
+      }
+      return;
+    }
 
-    const trimmed = cardTitle.trim();
+    const trimmed = selectedText.trim();
 
     // Underline the selected text in editor if selected
     if (selectedText) {

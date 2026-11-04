@@ -30,6 +30,61 @@ const AppLayout = () => {
     applyTheme(activeTheme);
   }, [activeFolderId, activeAestheticTheme, folderThemes, folders]);
 
+  // Global High-Efficiency Keyboard Shortcuts (1-5 view switching, C for quick capture)
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      const target = e.target;
+      if (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable ||
+        target.closest('.ProseMirror')
+      ) {
+        return;
+      }
+
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      if (e.key === '1') {
+        e.preventDefault();
+        useSlateStore.getState().setActiveFolderId(null);
+        useSlateStore.getState().setActiveTagId(null);
+        useSlateStore.getState().setWorkspaceView('spine');
+      } else if (e.key === '2') {
+        e.preventDefault();
+        const firstFolder = useSlateStore.getState().folders[0]?.id || 'folder-work';
+        const targetF = useSlateStore.getState().activeFolderId || firstFolder;
+        useSlateStore.getState().setActiveFolderId(targetF);
+        useSlateStore.getState().setFolderViewMode('split');
+        useSlateStore.getState().setWorkspaceView('split');
+      } else if (e.key === '3') {
+        e.preventDefault();
+        useSlateStore.getState().setActiveFolderId(null);
+        useSlateStore.getState().setActiveTagId(null);
+        useSlateStore.getState().setWorkspaceView('canvas');
+      } else if (e.key === '4') {
+        e.preventDefault();
+        useSlateStore.getState().setWorkspaceView('calendar');
+      } else if (e.key === '5') {
+        e.preventDefault();
+        useSlateStore.getState().setWorkspaceView('notes');
+      } else if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        const captureInput = document.querySelector('input[placeholder*="Water the plants"]') ||
+                             document.querySelector('input[placeholder*="Search"]');
+        if (captureInput) {
+          captureInput.focus();
+        }
+      } else if (e.key === '?') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('show-shortcuts'));
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   return (
     <div
       className="flex h-screen w-screen overflow-hidden relative transition-colors duration-300 text-[var(--color-text,#1B2420)] select-none bg-[var(--bone,#EFE9DC)]"
