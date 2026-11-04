@@ -6,12 +6,13 @@ import NoteEditor from '../notes/NoteEditor';
 import CalendarView from '../calendar/CalendarView';
 import JournalPanel from './JournalPanel';
 import DailySpineView from '../spine/DailySpineView';
+import FolderSplitView from '../folder/FolderSplitView';
 import ThemeSwitcher from './ThemeSwitcher';
 import {
   Search, Plus, Sparkles, FileText, ArrowDownUp, Clock,
   ArrowUpAZ, Palette, LayoutGrid, Layers, CheckSquare,
   CalendarDays, X, Check, Star, Trash2, Compass, BookOpen,
-  Folder, Tag, ShieldCheck
+  Folder, Tag, ShieldCheck, Columns
 } from 'lucide-react';
 import { CloudDoodle, MemoryBoxDoodle, EmptyNotesDoodle } from '../ui/Doodles';
 
@@ -53,6 +54,8 @@ const MainCanvas = () => {
     setOpenNoteId,
     setActiveFolderId,
     setActiveTagId,
+    folderViewMode,
+    setFolderViewMode,
   } = useSlateStore();
 
   const [cardFilter, setCardFilter] = useState('all'); // 'all' | 'pinned' | 'checklist' | 'text'
@@ -189,8 +192,8 @@ const MainCanvas = () => {
     ? 'Daily Flow'
     : workspaceView === 'calendar'
     ? 'Calendar & Planner'
-    : workspaceView === 'journal'
-    ? 'Daily Journal'
+    : (workspaceView === 'notes' || workspaceView === 'journal')
+    ? 'Manuscript Notes'
     : 'Desk Canvas';
 
   const isFilteredOrSpecial = Boolean(activeFolderId || activeTagId || showTrash || showFavorites);
@@ -198,9 +201,9 @@ const MainCanvas = () => {
   return (
     <main className="flex-1 flex flex-col h-screen overflow-hidden transition-colors select-none bg-[var(--bone,#EFE9DC)]">
       {/* =========================================================================
-          TOP NAVIGATION BAR: Only rendered for Desk Canvas / Folders / Filtered views
+          TOP NAVIGATION BAR: Rendered for Desk Canvas / Folders / Notes / Filtered views
           ========================================================================= */}
-      {(workspaceView === 'canvas' || isFilteredOrSpecial) && (
+      {(workspaceView === 'canvas' || isFilteredOrSpecial || workspaceView === 'notes' || workspaceView === 'journal') && (
         <header className="h-14 px-5 sm:px-6 border-b border-[var(--line,#D8D0BC)] bg-[var(--bone,#EFE9DC)]/95 backdrop-blur-md flex items-center justify-between gap-4 flex-shrink-0 z-20">
         
         {/* Zone 1 (Left): View Title & Filter Breadcrumb */}
@@ -254,70 +257,114 @@ const MainCanvas = () => {
           </div>
         </div>
 
-        {/* Zone 2 (Center): Segmented Cognitive Lenses Switcher */}
-        <div className="hidden lg:flex items-center bg-black/[0.03] p-0.5 rounded-full border border-[var(--line,#D8D0BC)] shadow-2xs font-sans">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveFolderId(null);
-              setActiveTagId(null);
-              setWorkspaceView('spine');
-            }}
-            className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
-              workspaceView === 'spine' && !isFilteredOrSpecial
-                ? 'bg-[var(--card,#F7F4EC)] text-[var(--gold,#C9A135)] shadow-xs font-semibold'
-                : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
-            }`}
-          >
-            <Compass className="w-3.5 h-3.5 text-[var(--gold,#C9A135)]" />
-            <span>Today</span>
-          </button>
+        {/* Zone 2 (Center): Folder View Switcher (Split View / Grid / Board) OR Cognitive Lenses */}
+        {activeFolder ? (
+          <div className="flex items-center bg-black/[0.04] p-0.5 rounded-xl border border-[var(--line,#D8D0BC)] text-xs font-sans shadow-2xs">
+            <button
+              type="button"
+              onClick={() => setFolderViewMode('split')}
+              className={`px-3 py-1 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+                folderViewMode === 'split'
+                  ? 'bg-[var(--card,#F7F4EC)] text-[var(--ink,#1B2420)] font-semibold shadow-xs'
+                  : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
+              }`}
+              title="Split View: Manuscript Notes on Left, Tasks & Context Cards on Right"
+            >
+              <Columns className="w-3.5 h-3.5 text-[var(--brick,#A8491F)]" />
+              <span>Split View</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFolderViewMode('grid')}
+              className={`px-3 py-1 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+                folderViewMode === 'grid'
+                  ? 'bg-[var(--card,#F7F4EC)] text-[var(--ink,#1B2420)] font-semibold shadow-xs'
+                  : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
+              }`}
+              title="Cards Grid Layout"
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-[var(--sage,#6B7F63)]" />
+              <span>Cards Grid</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFolderViewMode('board')}
+              className={`px-3 py-1 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer ${
+                folderViewMode === 'board'
+                  ? 'bg-[var(--card,#F7F4EC)] text-[var(--ink,#1B2420)] font-semibold shadow-xs'
+                  : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
+              }`}
+              title="Freeform Board Layout"
+            >
+              <Layers className="w-3.5 h-3.5 text-[var(--gold,#C9A135)]" />
+              <span>Board</span>
+            </button>
+          </div>
+        ) : (
+          <div className="hidden lg:flex items-center bg-black/[0.03] p-0.5 rounded-full border border-[var(--line,#D8D0BC)] shadow-2xs font-sans">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveFolderId(null);
+                setActiveTagId(null);
+                setWorkspaceView('spine');
+              }}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                workspaceView === 'spine' && !isFilteredOrSpecial
+                  ? 'bg-[var(--card,#F7F4EC)] text-[var(--gold,#C9A135)] shadow-xs font-semibold'
+                  : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
+              }`}
+            >
+              <Compass className="w-3.5 h-3.5 text-[var(--gold,#C9A135)]" />
+              <span>Today</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setWorkspaceView('canvas');
-            }}
-            className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
-              workspaceView === 'canvas' || isFilteredOrSpecial
-                ? 'bg-[var(--card,#F7F4EC)] text-[var(--ink,#1B2420)] shadow-xs font-semibold'
-                : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
-            }`}
-          >
-            <LayoutGrid className="w-3.5 h-3.5 text-[var(--sage,#6B7F63)]" />
-            <span>Desk Canvas</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setWorkspaceView('canvas');
+              }}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                workspaceView === 'canvas' || isFilteredOrSpecial
+                  ? 'bg-[var(--card,#F7F4EC)] text-[var(--ink,#1B2420)] shadow-xs font-semibold'
+                  : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5 text-[var(--sage,#6B7F63)]" />
+              <span>Desk Canvas</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setWorkspaceView('calendar');
-            }}
-            className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
-              workspaceView === 'calendar'
-                ? 'bg-[var(--card,#F7F4EC)] text-[var(--sage,#6B7F63)] shadow-xs font-semibold'
-                : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
-            }`}
-          >
-            <CalendarDays className="w-3.5 h-3.5 text-[var(--sage,#6B7F63)]" />
-            <span>Calendar</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => {
+                setWorkspaceView('calendar');
+              }}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                workspaceView === 'calendar'
+                  ? 'bg-[var(--card,#F7F4EC)] text-[var(--sage,#6B7F63)] shadow-xs font-semibold'
+                  : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
+              }`}
+            >
+              <CalendarDays className="w-3.5 h-3.5 text-[var(--sage,#6B7F63)]" />
+              <span>Calendar</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setWorkspaceView('journal');
-            }}
-            className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
-              workspaceView === 'journal'
-                ? 'bg-[var(--card,#F7F4EC)] text-[var(--brick,#A8491F)] shadow-xs font-semibold'
-                : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5 text-[var(--brick,#A8491F)]" />
-            <span>Journal</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => {
+                setWorkspaceView('notes');
+              }}
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-all flex items-center gap-1.5 cursor-pointer ${
+                (workspaceView === 'notes' || workspaceView === 'journal') && !isFilteredOrSpecial
+                  ? 'bg-[var(--card,#F7F4EC)] text-[var(--brick,#A8491F)] shadow-xs font-semibold'
+                  : 'text-[var(--ink-soft,#3A463E)] hover:text-[var(--ink,#1B2420)]'
+              }`}
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[var(--brick,#A8491F)]" />
+              <span>Notes</span>
+            </button>
+          </div>
+        )}
 
         {/* Zone 3 (Right): Search, Theme, & Creation Actions */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
@@ -388,13 +435,18 @@ const MainCanvas = () => {
           <CalendarView />
         )}
 
-        {/* LENS 3: Daily Journal & Notebook by Date */}
-        {workspaceView === 'journal' && !isFilteredOrSpecial && (
+        {/* LENS 3: Manuscript Notes */}
+        {(workspaceView === 'notes' || workspaceView === 'journal') && !isFilteredOrSpecial && (
           <JournalPanel />
         )}
 
-        {/* LENS 4: Desk Canvas (All Collections, Folder filtering, Tactile cards) */}
-        {(workspaceView === 'canvas' || isFilteredOrSpecial) && (
+        {/* LENS 4: Folder Split View (Notes & Tasks side-by-side) */}
+        {activeFolder && folderViewMode === 'split' && !showTrash && !showFavorites && (
+          <FolderSplitView folder={activeFolder} />
+        )}
+
+        {/* LENS 5: Desk Canvas (All Collections, Folder filtering, Tactile cards) */}
+        {(workspaceView === 'canvas' || isFilteredOrSpecial) && (!activeFolder || folderViewMode !== 'split' || showTrash || showFavorites) && (
           <div className="flex-1 overflow-auto bg-paper-grain relative p-5 sm:p-7">
             <div className={viewMode === 'grid' || showTrash ? 'max-w-6xl mx-auto w-full' : ''}>
               

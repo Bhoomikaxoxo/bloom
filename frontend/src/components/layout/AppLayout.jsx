@@ -55,25 +55,30 @@ const AppLayout = () => {
         }}
       />
 
-      {/* 2. Folders & Worlds Drawer (Slide-Over Overlay Drawer summoned on demand) */}
+      {/* 2. Folders & Worlds Drawer (Collapsible) */}
       <div
-        className={`fixed inset-y-0 left-16 z-40 transition-transform duration-300 ease-in-out shadow-2xl ${
-          sidebarCollapsed ? '-translate-x-[110%] pointer-events-none' : 'translate-x-0'
+        className={`transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0 z-30 ${
+          sidebarCollapsed
+            ? 'w-0 opacity-0 pointer-events-none'
+            : 'w-64 opacity-100'
+        } ${
+          mobileMenuOpen
+            ? 'fixed inset-y-0 left-16 z-40 bg-[var(--bone-dim,#E4DDCC)] shadow-2xl'
+            : 'relative'
         }`}
       >
-        <Sidebar onCloseMobile={toggleSidebarCollapsed} />
+        <Sidebar onCloseMobile={() => setMobileMenuOpen(false)} />
       </div>
 
-      {/* Gentle Backdrop for drawer dismissal */}
-      {!sidebarCollapsed && (
+      {/* Mobile Backdrop */}
+      {mobileMenuOpen && (
         <div
-          onClick={toggleSidebarCollapsed}
-          className="fixed inset-0 left-16 bg-black/25 backdrop-blur-2xs z-35 animate-fade-in cursor-pointer"
-          title="Click to dismiss collections drawer"
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/30 backdrop-blur-xs z-35 md:hidden animate-fade-in"
         />
       )}
 
-      {/* 3. Main Workspace Canvas (Spacious, Classy, Perfectly Centered) */}
+      {/* 3. Main Workspace Canvas (Spacious, Classy, Focused) */}
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden bg-[var(--bone,#EFE9DC)]">
         <MainCanvas />
       </div>

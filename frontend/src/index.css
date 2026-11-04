@@ -236,3 +236,19 @@
   font-style: italic;
   font-family: var(--font-serif);
 }
+
+/* Interactive Underlined References in Notes & Manuscripts */
+.ProseMirror u {
+  text-decoration: underline;
+  text-decoration-color: var(--brick, #A8491F);
+  text-decoration-thickness: 1.8px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 0 2px;
+  transition: all 0.15s ease;
+}
+.ProseMirror u:hover {
+  background-color: rgba(168, 73, 31, 0.12);
+  color: var(--brick, #A8491F);
+}

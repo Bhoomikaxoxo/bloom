@@ -439,6 +439,14 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
               </span>
             );
           })}
+          {note.linkedReference && (
+            <span
+              className="text-[10px] font-sans font-medium px-2 py-0.5 rounded-full bg-[var(--brick,#A8491F)]/10 text-[var(--brick,#A8491F)] border border-[var(--brick,#A8491F)]/25 flex items-center gap-1"
+              title={`Context for underlined mention: "${note.linkedReference}"`}
+            >
+              <span>🔗 "{note.linkedReference}"</span>
+            </span>
+          )}
         </div>
 
         {/* Color Palette Picker Dots on Hover */}

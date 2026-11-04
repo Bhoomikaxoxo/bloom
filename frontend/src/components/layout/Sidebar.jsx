@@ -101,6 +101,12 @@ const Sidebar = ({ onCloseMobile }) => {
       setWorkspaceView('calendar');
       setShowTrash(false);
       setShowFavorites(false);
+    } else if (type === 'notes') {
+      setWorkspaceView('notes');
+      setActiveFolderId(null);
+      setActiveTagId(null);
+      setShowTrash(false);
+      setShowFavorites(false);
     } else if (type === 'favorites') {
       setWorkspaceView('canvas');
       setShowFavorites(true);
@@ -204,6 +210,21 @@ const Sidebar = ({ onCloseMobile }) => {
               {calendarEvents.length}
             </span>
           )}
+        </button>
+
+        {/* Manuscript Notes */}
+        <button
+          onClick={() => selectView('notes')}
+          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
+            (workspaceView === 'notes' || workspaceView === 'journal') && !showTrash && !showFavorites && !activeFolderId && !activeTagId
+              ? 'bg-[#FAF5EE] text-[#A8491F] font-bold shadow-2xs border border-[#EBDCBF]'
+              : 'text-[#1F1D1A] dark:text-[#E8E3D8] opacity-80 hover:opacity-100 hover:bg-black/[0.04] dark:hover:bg-white/[0.06]'
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <BookOpen className="w-4 h-4 text-[#A8491F]" />
+            <span>Notes</span>
+          </div>
         </button>
 
         {/* Pinned & Favorites */}

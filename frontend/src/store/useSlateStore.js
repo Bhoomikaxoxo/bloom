@@ -104,6 +104,8 @@ const useSlateStore = create(
       journals: {},
       activeAestheticTheme: 'bloom-v2',
       sidebarCollapsed: true,
+      folderViewMode: 'split', // 'split' (Notes + Tasks side-by-side) | 'grid' | 'board'
+      highlightedCardId: null,
       folderThemes: {
         'folder-work': 'matcha',
         'folder-personal': 'rose',
@@ -238,8 +240,13 @@ const useSlateStore = create(
         return { folderThemes: newFolderThemes };
       }),
 
-      workspaceView: 'spine', // 'spine' (Daily Stream) | 'canvas' (Macro Desk) | 'calendar' (Month Grid)
-      setWorkspaceView: (view) => set({ workspaceView: view, showCalendar: view === 'calendar' }),
+      workspaceView: 'spine', // 'spine' (Daily Stream) | 'canvas' (Macro Desk) | 'calendar' (Month Grid) | 'notes' (Manuscript Notes)
+      setWorkspaceView: (view) => set({
+        workspaceView: view === 'journal' ? 'notes' : view,
+        showCalendar: view === 'calendar'
+      }),
+      setFolderViewMode: (mode) => set({ folderViewMode: mode }),
+      setHighlightedCardId: (id) => set({ highlightedCardId: id }),
       toggleSidebarCollapsed: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
 
@@ -296,6 +303,7 @@ const useSlateStore = create(
           tags: overrides.tags || (get().activeTagId ? [get().activeTagId] : []),
           content: overrides.content || '',
           checklist: overrides.checklist || [],
+          linkedReference: overrides.linkedReference || null,
           boardPosition: { x: 100 + Math.random() * 80, y: 100 + Math.random() * 80 },
           createdAt: Date.now(),
           updatedAt: Date.now(),
@@ -708,12 +716,6 @@ const useSlateStore = create(
           }
 
           state.folderThemes = { ...defaultThemes, ...(state.folderThemes || {}) };
-
-          // Enforce signature classy Bloom v2 theme and collapsed collections drawer
-          if (state.activeAestheticTheme !== 'bloom-v2') {
-            state.activeAestheticTheme = 'bloom-v2';
-          }
-          state.sidebarCollapsed = true;
 
           if (state.activeFolderId) {
             const activeF = (state.folders || []).find((f) => f.id === state.activeFolderId);

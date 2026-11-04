@@ -98,7 +98,7 @@ const JournalPanel = ({ onClose }) => {
       Underline,
       Typography,
       Placeholder.configure({
-        placeholder: 'Write daily notes, commitments, bullet points, or reflections…',
+        placeholder: 'Write daily notes, commitments, bullet points, or thoughts… Underline anything to create or link context cards.',
       }),
     ],
     content: currentJournalData.content1 || '',
