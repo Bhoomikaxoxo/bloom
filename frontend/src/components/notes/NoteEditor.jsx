@@ -43,17 +43,15 @@ const ToolBtn = ({ onClick, active, title, children }) => (
 );
 
 const NoteEditor = ({ note, onClose }) => {
-  const {
-    updateNote,
-    deleteNote,
-    duplicateNote,
-    folders,
-    tags,
-    addChecklistItem,
-    updateChecklistItem,
-    deleteChecklistItem,
-    triggerConfetti,
-  } = useSlateStore();
+  const folders = useSlateStore((s) => s.folders);
+  const tags = useSlateStore((s) => s.tags);
+  const updateNote = useSlateStore((s) => s.updateNote);
+  const deleteNote = useSlateStore((s) => s.deleteNote);
+  const duplicateNote = useSlateStore((s) => s.duplicateNote);
+  const addChecklistItem = useSlateStore((s) => s.addChecklistItem);
+  const updateChecklistItem = useSlateStore((s) => s.updateChecklistItem);
+  const deleteChecklistItem = useSlateStore((s) => s.deleteChecklistItem);
+  const triggerConfetti = useSlateStore((s) => s.triggerConfetti);
 
   const [newItemText, setNewItemText] = useState('');
   const [showFolderMenu, setShowFolderMenu] = useState(false);
@@ -61,6 +59,20 @@ const NoteEditor = ({ note, onClose }) => {
   const [copied, setCopied] = useState(false);
   const titleRef = useRef(null);
   const newItemRef = useRef(null);
+  const updateTimeoutRef = useRef(null);
+
+  const debouncedUpdateNote = useCallback((updates) => {
+    if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    updateTimeoutRef.current = setTimeout(() => {
+      updateNote(note.id, updates);
+    }, 200);
+  }, [note.id, updateNote]);
+
+  useEffect(() => {
+    return () => {
+      if (updateTimeoutRef.current) clearTimeout(updateTimeoutRef.current);
+    };
+  }, []);
 
   const handleCopy = () => {
     const textToCopy = `${note.title || 'Untitled'}\n\n${
@@ -96,7 +108,7 @@ const NoteEditor = ({ note, onClose }) => {
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
       const plain = stripHtml(html);
-      updateNote(note.id, { richText: html, content: plain, updatedAt: Date.now() });
+      debouncedUpdateNote({ richText: html, content: plain, updatedAt: Date.now() });
     },
   }, [note.id]);
 
@@ -523,5 +535,5 @@ const NoteEditor = ({ note, onClose }) => {
   );
 };
 
-export default NoteEditor;
+export default React.memo(NoteEditor);
 

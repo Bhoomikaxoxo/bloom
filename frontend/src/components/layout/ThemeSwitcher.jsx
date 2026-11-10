@@ -12,10 +12,8 @@ const THEME_DESCRIPTIONS = {
 };
 
 const ThemeSwitcher = () => {
-  const {
-    activeAestheticTheme,
-    setAestheticTheme,
-  } = useSlateStore();
+  const activeAestheticTheme = useSlateStore((s) => s.activeAestheticTheme);
+  const setAestheticTheme = useSlateStore((s) => s.setAestheticTheme);
 
   const [isOpen, setIsOpen] = useState(false);
   const popoverRef = useRef(null);
@@ -101,4 +99,4 @@ const ThemeSwitcher = () => {
   );
 };
 
-export default ThemeSwitcher;
+export default React.memo(ThemeSwitcher);

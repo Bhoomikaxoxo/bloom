@@ -42,19 +42,17 @@ const formatDateKey = (d) => {
 };
 
 const CalendarView = () => {
-  const {
-    calendarEvents = [],
-    addCalendarEvent,
-    deleteCalendarEvent,
-    toggleCalendarEvent,
-    notes = [],
-    addNote,
-    setOpenNoteId,
-    triggerConfetti,
-    quickCapture,
-    setTaskStatus,
-    deleteNote,
-  } = useSlateStore();
+  const calendarEvents = useSlateStore((s) => s.calendarEvents) || [];
+  const notes = useSlateStore((s) => s.notes) || [];
+  const addCalendarEvent = useSlateStore((s) => s.addCalendarEvent);
+  const deleteCalendarEvent = useSlateStore((s) => s.deleteCalendarEvent);
+  const toggleCalendarEvent = useSlateStore((s) => s.toggleCalendarEvent);
+  const addNote = useSlateStore((s) => s.addNote);
+  const setOpenNoteId = useSlateStore((s) => s.setOpenNoteId);
+  const triggerConfetti = useSlateStore((s) => s.triggerConfetti);
+  const quickCapture = useSlateStore((s) => s.quickCapture);
+  const setTaskStatus = useSlateStore((s) => s.setTaskStatus);
+  const deleteNote = useSlateStore((s) => s.deleteNote);
 
   const todayKey = useMemo(() => formatDateKey(new Date()), []);
   const tomorrowKey = useMemo(() => formatDateKey(new Date(Date.now() + 86400000)), []);
@@ -648,4 +646,4 @@ const CalendarView = () => {
   );
 };
 
-export default CalendarView;
+export default React.memo(CalendarView);

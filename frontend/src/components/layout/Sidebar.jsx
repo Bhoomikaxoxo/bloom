@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import useSlateStore from '../../store/useSlateStore';
 import { THEMES, TAG_COLOR_MAP } from '../../utils/theme-config';
 import BloomLogo from '../ui/BloomLogo';
@@ -62,9 +62,21 @@ const Sidebar = ({ onCloseMobile }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const activeNotesCount = notes.filter((n) => n.deletedAt === null).length;
-  const favoritesCount = notes.filter((n) => n.isFavorite && n.deletedAt === null).length;
-  const deletedNotesCount = notes.filter((n) => n.deletedAt !== null).length;
+  const { activeNotesCount, favoritesCount, deletedNotesCount } = useMemo(() => {
+    let active = 0;
+    let fav = 0;
+    let del = 0;
+    for (let i = 0; i < (notes || []).length; i++) {
+      const n = notes[i];
+      if (n.deletedAt === null) {
+        active++;
+        if (n.isFavorite) fav++;
+      } else {
+        del++;
+      }
+    }
+    return { activeNotesCount: active, favoritesCount: fav, deletedNotesCount: del };
+  }, [notes]);
 
   const handleAddFolder = (e) => {
     e.preventDefault();
@@ -591,4 +603,4 @@ const Sidebar = ({ onCloseMobile }) => {
   );
 };
 
-export default Sidebar;
+export default React.memo(Sidebar);

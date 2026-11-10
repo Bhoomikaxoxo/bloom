@@ -265,8 +265,11 @@ themes.matchaFrog = themes.matcha;
 themes.lilacMist = themes.lavender;
 themes.sunsetMeadow = themes.caramel;
 
+let lastAppliedThemeId = null;
+
 export const applyTheme = (theme) => {
-  if (!theme) return;
+  if (!theme || lastAppliedThemeId === theme.id) return;
+  lastAppliedThemeId = theme.id;
   const root = document.documentElement;
 
   root.style.setProperty('--frame-color', theme.accentColor);

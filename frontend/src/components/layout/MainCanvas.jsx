@@ -33,31 +33,29 @@ const ENERGY_FILTERS = [
 ];
 
 const MainCanvas = () => {
-  const {
-    notes,
-    folders,
-    tags,
-    activeFolderId,
-    activeTagId,
-    searchQuery,
-    viewMode,
-    showTrash,
-    showFavorites,
-    workspaceView,
-    setWorkspaceView,
-    sortMode,
-    openNoteId,
-    setSearchQuery,
-    addNote,
-    emptyTrash,
-    setViewMode,
-    setSortMode,
-    setOpenNoteId,
-    setActiveFolderId,
-    setActiveTagId,
-    folderViewMode,
-    setFolderViewMode,
-  } = useSlateStore();
+  const notes = useSlateStore((s) => s.notes);
+  const folders = useSlateStore((s) => s.folders);
+  const tags = useSlateStore((s) => s.tags);
+  const activeFolderId = useSlateStore((s) => s.activeFolderId);
+  const activeTagId = useSlateStore((s) => s.activeTagId);
+  const searchQuery = useSlateStore((s) => s.searchQuery);
+  const viewMode = useSlateStore((s) => s.viewMode);
+  const showTrash = useSlateStore((s) => s.showTrash);
+  const showFavorites = useSlateStore((s) => s.showFavorites);
+  const workspaceView = useSlateStore((s) => s.workspaceView);
+  const setWorkspaceView = useSlateStore((s) => s.setWorkspaceView);
+  const sortMode = useSlateStore((s) => s.sortMode);
+  const openNoteId = useSlateStore((s) => s.openNoteId);
+  const setSearchQuery = useSlateStore((s) => s.setSearchQuery);
+  const addNote = useSlateStore((s) => s.addNote);
+  const emptyTrash = useSlateStore((s) => s.emptyTrash);
+  const setViewMode = useSlateStore((s) => s.setViewMode);
+  const setSortMode = useSlateStore((s) => s.setSortMode);
+  const setOpenNoteId = useSlateStore((s) => s.setOpenNoteId);
+  const setActiveFolderId = useSlateStore((s) => s.setActiveFolderId);
+  const setActiveTagId = useSlateStore((s) => s.setActiveTagId);
+  const folderViewMode = useSlateStore((s) => s.folderViewMode);
+  const setFolderViewMode = useSlateStore((s) => s.setFolderViewMode);
 
   const [cardFilter, setCardFilter] = useState('all'); // 'all' | 'pinned' | 'checklist' | 'text'
   const [energyFilter, setEnergyFilter] = useState('all');
@@ -125,51 +123,65 @@ const MainCanvas = () => {
     return () => window.removeEventListener('keydown', handler);
   }, [addNote, setOpenNoteId, openNoteId, setViewMode, setWorkspaceView]);
 
-  // Filter notes for the current active view
-  const baseNotesInView = notes.filter((note) => {
-    if (showTrash) {
-      if (note.deletedAt === null) return false;
-    } else {
-      if (note.deletedAt !== null) return false;
-    }
-    if (showFavorites && !note.isFavorite) return false;
-    if (activeFolderId && note.folderId !== activeFolderId) return false;
-    if (activeTagId && !note.tags?.includes(activeTagId)) return false;
+  // Filter notes for the current active view (Memoized to prevent redundant array traversals)
+  const baseNotesInView = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return notes.filter((note) => {
+      if (showTrash) {
+        if (note.deletedAt === null) return false;
+      } else {
+        if (note.deletedAt !== null) return false;
+      }
+      if (showFavorites && !note.isFavorite) return false;
+      if (activeFolderId && note.folderId !== activeFolderId) return false;
+      if (activeTagId && !note.tags?.includes(activeTagId)) return false;
+      if (energyFilter !== 'all' && note.energyDomain !== energyFilter) return false;
 
-    if (energyFilter !== 'all' && note.energyDomain !== energyFilter) return false;
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      const titleMatch = note.title?.toLowerCase().includes(q);
-      let bodyMatch = false;
-      if (note.type === 'text') bodyMatch = (note.content || note.richText || '').toLowerCase().includes(q);
-      else if (note.type === 'checklist') bodyMatch = note.checklist?.some((i) => i.text.toLowerCase().includes(q));
-      if (!titleMatch && !bodyMatch) return false;
-    }
-    return true;
-  });
+      if (q) {
+        const titleMatch = note.title?.toLowerCase().includes(q);
+        let bodyMatch = false;
+        if (note.type === 'text') bodyMatch = (note.content || note.richText || '').toLowerCase().includes(q);
+        else if (note.type === 'checklist') bodyMatch = note.checklist?.some((i) => i.text.toLowerCase().includes(q));
+        if (!titleMatch && !bodyMatch) return false;
+      }
+      return true;
+    });
+  }, [notes, showTrash, showFavorites, activeFolderId, activeTagId, energyFilter, searchQuery]);
 
   // Apply quick sub-filter (all, pinned, checklist, text)
-  const filteredNotes = baseNotesInView.filter((note) => {
-    if (cardFilter === 'pinned' && !note.isPinned) return false;
-    if (cardFilter === 'checklist' && note.type !== 'checklist') return false;
-    if (cardFilter === 'text' && note.type !== 'text') return false;
-    return true;
-  });
+  const filteredNotes = useMemo(() => {
+    if (cardFilter === 'all') return baseNotesInView;
+    return baseNotesInView.filter((note) => {
+      if (cardFilter === 'pinned' && !note.isPinned) return false;
+      if (cardFilter === 'checklist' && note.type !== 'checklist') return false;
+      if (cardFilter === 'text' && note.type !== 'text') return false;
+      return true;
+    });
+  }, [baseNotesInView, cardFilter]);
 
-  // Sort notes
-  const sortedNotes = [...filteredNotes].sort((a, b) => {
-    switch (sortMode) {
-      case 'oldest': return a.createdAt - b.createdAt;
-      case 'az': return (a.title || '').localeCompare(b.title || '');
-      case 'color': return (a.colorIndex || 1) - (b.colorIndex || 1);
-      case 'newest':
-      default: return b.updatedAt - a.updatedAt;
+  // Sort notes (Memoized)
+  const sortedNotes = useMemo(() => {
+    return [...filteredNotes].sort((a, b) => {
+      switch (sortMode) {
+        case 'oldest': return a.createdAt - b.createdAt;
+        case 'az': return (a.title || '').localeCompare(b.title || '');
+        case 'color': return (a.colorIndex || 1) - (b.colorIndex || 1);
+        case 'newest':
+        default: return b.updatedAt - a.updatedAt;
+      }
+    });
+  }, [filteredNotes, sortMode]);
+
+  // Single-pass partitioning of pinned and unpinned notes
+  const { pinnedNotes, unpinnedNotes } = useMemo(() => {
+    const pinned = [];
+    const unpinned = [];
+    for (let i = 0; i < sortedNotes.length; i++) {
+      if (sortedNotes[i].isPinned) pinned.push(sortedNotes[i]);
+      else unpinned.push(sortedNotes[i]);
     }
-  });
-
-  const pinnedNotes = sortedNotes.filter((n) => n.isPinned);
-  const unpinnedNotes = sortedNotes.filter((n) => !n.isPinned);
+    return { pinnedNotes: pinned, unpinnedNotes: unpinned };
+  }, [sortedNotes]);
 
   const activeFolder = folders.find((f) => f.id === activeFolderId);
   const activeTag = tags.find((t) => t.id === activeTagId);
@@ -777,4 +789,4 @@ const MainCanvas = () => {
   );
 };
 
-export default MainCanvas;
+export default React.memo(MainCanvas);

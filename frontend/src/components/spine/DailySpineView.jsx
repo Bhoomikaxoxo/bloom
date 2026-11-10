@@ -96,22 +96,20 @@ const QUICK_TIME_SLOTS = [
 ];
 
 const DailySpineView = () => {
-  const {
-    notes = [],
-    folders = [],
-    setTaskStatus,
-    scheduleItem,
-    setTodayAnchor,
-    deleteNote,
-    setOpenNoteId,
-    triggerConfetti,
-    getReflectionPrompt,
-    quickCapture,
-    toggleSidebarCollapsed,
-    setActiveFolderId,
-    setWorkspaceView,
-    calendarEvents = [],
-  } = useSlateStore();
+  const notes = useSlateStore((s) => s.notes);
+  const folders = useSlateStore((s) => s.folders);
+  const calendarEvents = useSlateStore((s) => s.calendarEvents);
+  const setTaskStatus = useSlateStore((s) => s.setTaskStatus);
+  const scheduleItem = useSlateStore((s) => s.scheduleItem);
+  const setTodayAnchor = useSlateStore((s) => s.setTodayAnchor);
+  const deleteNote = useSlateStore((s) => s.deleteNote);
+  const setOpenNoteId = useSlateStore((s) => s.setOpenNoteId);
+  const triggerConfetti = useSlateStore((s) => s.triggerConfetti);
+  const getReflectionPrompt = useSlateStore((s) => s.getReflectionPrompt);
+  const quickCapture = useSlateStore((s) => s.quickCapture);
+  const toggleSidebarCollapsed = useSlateStore((s) => s.toggleSidebarCollapsed);
+  const setActiveFolderId = useSlateStore((s) => s.setActiveFolderId);
+  const setWorkspaceView = useSlateStore((s) => s.setWorkspaceView);
 
   const [quickInput, setQuickInput] = useState('');
   const [reflectionInput, setReflectionInput] = useState('');
@@ -712,4 +710,4 @@ const DailySpineView = () => {
   );
 };
 
-export default DailySpineView;
+export default React.memo(DailySpineView);

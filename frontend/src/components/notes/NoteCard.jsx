@@ -1,57 +1,41 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import useSlateStore from '../../store/useSlateStore';
 import { TAG_COLOR_MAP } from '../../utils/theme-config';
 import { Pin, Star, Trash2, Plus, Check, Undo, Trash, Copy, Folder } from 'lucide-react';
 
-const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen }) => {
-  const {
-    updateNote,
-    deleteNote,
-    duplicateNote,
-    restoreNote,
-    deleteNotePermanently,
-    updateNotePosition,
-    addChecklistItem,
-    updateChecklistItem,
-    folders,
-    tags,
-    showTrash,
-    triggerConfetti,
-  } = useSlateStore();
+const formatRelativeTime = (timestamp) => {
+  if (!timestamp) return '';
+  const diff = Date.now() - timestamp;
+  if (diff < 60000) return 'Just now';
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(diff / 3600000);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(diff / 86400000);
+  return `${days}d ago`;
+};
 
-  const [relativeTime, setRelativeTime] = useState('');
+const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen }) => {
+  const folders = useSlateStore((s) => s.folders);
+  const tags = useSlateStore((s) => s.tags);
+  const showTrash = useSlateStore((s) => s.showTrash);
+  const updateNote = useSlateStore((s) => s.updateNote);
+  const deleteNote = useSlateStore((s) => s.deleteNote);
+  const duplicateNote = useSlateStore((s) => s.duplicateNote);
+  const restoreNote = useSlateStore((s) => s.restoreNote);
+  const deleteNotePermanently = useSlateStore((s) => s.deleteNotePermanently);
+  const updateNotePosition = useSlateStore((s) => s.updateNotePosition);
+  const addChecklistItem = useSlateStore((s) => s.addChecklistItem);
+  const updateChecklistItem = useSlateStore((s) => s.updateChecklistItem);
+  const triggerConfetti = useSlateStore((s) => s.triggerConfetti);
+
+  const relativeTime = useMemo(() => formatRelativeTime(note.updatedAt), [note.updatedAt]);
   const [newTodoText, setNewTodoText] = useState('');
   const [showFolderMenu, setShowFolderMenu] = useState(false);
   const folderMenuRef = useRef(null);
   const cardRef = useRef(null);
   const isDraggingRef = useRef(false);
-
-  useEffect(() => {
-    const updateTime = () => {
-      const diff = Date.now() - note.updatedAt;
-      if (diff < 60000) {
-        setRelativeTime('Just now');
-      } else {
-        const mins = Math.floor(diff / 60000);
-        if (mins < 60) {
-          setRelativeTime(`${mins}m ago`);
-        } else {
-          const hours = Math.floor(diff / 3600000);
-          if (hours < 24) {
-            setRelativeTime(`${hours}h ago`);
-          } else {
-            const days = Math.floor(diff / 86400000);
-            setRelativeTime(`${days}d ago`);
-          }
-        }
-      }
-    };
-
-    updateTime();
-    const interval = setInterval(updateTime, 30000);
-    return () => clearInterval(interval);
-  }, [note.updatedAt]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -478,4 +462,4 @@ const NoteCard = ({ note, isDraggable = false, dragConstraints = null, onOpen })
   );
 };
 
-export default NoteCard;
+export default React.memo(NoteCard);

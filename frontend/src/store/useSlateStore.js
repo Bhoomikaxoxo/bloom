@@ -676,6 +676,20 @@ const useSlateStore = create(
     }),
     {
       name: 'bloom-workspace-storage', // Independent local-first device storage
+      partialize: (state) => ({
+        notes: state.notes,
+        folders: state.folders,
+        tags: state.tags,
+        journals: state.journals,
+        calendarEvents: state.calendarEvents,
+        folderThemes: state.folderThemes,
+        activeAestheticTheme: state.activeAestheticTheme,
+        folderViewMode: state.folderViewMode,
+        followThroughStreak: state.followThroughStreak,
+        lastActiveAt: state.lastActiveAt,
+        viewMode: state.viewMode,
+        sortMode: state.sortMode,
+      }),
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.journalViewMode = 'notes';

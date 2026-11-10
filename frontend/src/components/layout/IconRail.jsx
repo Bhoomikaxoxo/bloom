@@ -6,19 +6,17 @@ import {
 } from 'lucide-react';
 
 const IconRail = ({ onOpenStorage, onFocusSearch }) => {
-  const {
-    workspaceView,
-    setWorkspaceView,
-    sidebarCollapsed,
-    toggleSidebarCollapsed,
-    followThroughStreak = 1,
-    activeFolderId,
-    folderViewMode,
-    setActiveFolderId,
-    setActiveTagId,
-    setShowTrash,
-    setShowFavorites,
-  } = useSlateStore();
+  const workspaceView = useSlateStore((s) => s.workspaceView);
+  const sidebarCollapsed = useSlateStore((s) => s.sidebarCollapsed);
+  const followThroughStreak = useSlateStore((s) => s.followThroughStreak) || 1;
+  const activeFolderId = useSlateStore((s) => s.activeFolderId);
+  const folderViewMode = useSlateStore((s) => s.folderViewMode);
+  const setWorkspaceView = useSlateStore((s) => s.setWorkspaceView);
+  const toggleSidebarCollapsed = useSlateStore((s) => s.toggleSidebarCollapsed);
+  const setActiveFolderId = useSlateStore((s) => s.setActiveFolderId);
+  const setActiveTagId = useSlateStore((s) => s.setActiveTagId);
+  const setShowTrash = useSlateStore((s) => s.setShowTrash);
+  const setShowFavorites = useSlateStore((s) => s.setShowFavorites);
 
   const handleNav = (view) => {
     setShowTrash(false);
@@ -175,5 +173,5 @@ const IconRail = ({ onOpenStorage, onFocusSearch }) => {
   );
 };
 
-export default IconRail;
+export default React.memo(IconRail);
 

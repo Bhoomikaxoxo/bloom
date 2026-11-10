@@ -31,21 +31,19 @@ const FormatBtn = ({ onClick, active, title, children }) => (
 );
 
 const FolderSplitView = ({ folder }) => {
-  const {
-    notes = [],
-    folders = [],
-    journals = {},
-    updateJournal,
-    quickCapture,
-    setTaskStatus,
-    deleteNote,
-    updateNote,
-    setOpenNoteId,
-    setActiveFolderId,
-    triggerConfetti,
-    highlightedCardId,
-    setHighlightedCardId,
-  } = useSlateStore();
+  const notes = useSlateStore((s) => s.notes) || [];
+  const folders = useSlateStore((s) => s.folders) || [];
+  const journals = useSlateStore((s) => s.journals) || {};
+  const highlightedCardId = useSlateStore((s) => s.highlightedCardId);
+  const updateJournal = useSlateStore((s) => s.updateJournal);
+  const quickCapture = useSlateStore((s) => s.quickCapture);
+  const setTaskStatus = useSlateStore((s) => s.setTaskStatus);
+  const deleteNote = useSlateStore((s) => s.deleteNote);
+  const updateNote = useSlateStore((s) => s.updateNote);
+  const setOpenNoteId = useSlateStore((s) => s.setOpenNoteId);
+  const setActiveFolderId = useSlateStore((s) => s.setActiveFolderId);
+  const triggerConfetti = useSlateStore((s) => s.triggerConfetti);
+  const setHighlightedCardId = useSlateStore((s) => s.setHighlightedCardId);
 
   const folderId = folder?.id || 'folder-work';
   const folderKey = `folder-${folderId}`;
@@ -743,5 +741,5 @@ const FolderSplitView = ({ folder }) => {
   );
 };
 
-export default FolderSplitView;
+export default React.memo(FolderSplitView);
 

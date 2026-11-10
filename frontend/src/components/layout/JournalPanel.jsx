@@ -38,12 +38,10 @@ const formatDateKey = (d) => {
 };
 
 const JournalPanel = ({ onClose }) => {
-  const {
-    journals = {},
-    updateJournal,
-    quickCapture,
-    triggerConfetti,
-  } = useSlateStore();
+  const journals = useSlateStore((s) => s.journals) || {};
+  const updateJournal = useSlateStore((s) => s.updateJournal);
+  const quickCapture = useSlateStore((s) => s.quickCapture);
+  const triggerConfetti = useSlateStore((s) => s.triggerConfetti);
 
   const todayKey = useMemo(() => formatDateKey(new Date()), []);
   const [selectedDateKey, setSelectedDateKey] = useState(todayKey);
@@ -340,4 +338,4 @@ const JournalPanel = ({ onClose }) => {
   );
 };
 
-export default JournalPanel;
+export default React.memo(JournalPanel);
